@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Simulasi SJT Guru</title>
+    <style>
+      :root {
+        --primary: #0f6cbf;
+        --primary-hover: #0b5599;
+        --bg: #f2f4f6;
+        --surface: #ffffff;
+        --surface-2: #f8f9fa;
+        --border: #dee2e6;
+        --text: #1d2125;
+        --muted: #5b6670;
+        --link: #0f6cbf;
+        --qcard: #dbe9f6;
+        --qcard-border: #b8d2ec;
+        --timer-border: #ca3120;
+        --timer-text: #a4261a;
+        --btn-gray: #6c757d;
+        --btn-gray-hover: #5a6268;
+        --nav-answered: #cfd6dd;
+        --nav-disabled: #e9ecef;
+        --ok-bg: #d7f0dd;
+        --ok-text: #146c2e;
+        --ok-border: #7fc98f;
+        --bad-bg: #fadadd;
+        --bad-text: #9c1c26;
+        --bad-border: #e79aa1;
+        --flag: #ca3120;
+        --shadow: 0 1px 3px rgba(16, 24, 40, .08);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --primary: #4d9de0;
+          --primary-hover: #6db1e8;
+          --bg: #14181d;
+          --surface: #1e242b;
+          --surface-2: #252c34;
+          --border: #3a424c;
+          --text: #e8ecf1;
+          --muted: #a7b0ba;
+          --link: #6db1e8;
+          --qcard: #22374d;
+          --qcard-border: #33506e;
+          --timer-border: #e0655a;
+          --timer-text: #ff9d94;
+          --btn-gray: #49525b;
+          --btn-gray-hover: #57616b;
+          --nav-answered: #46525e;
+          --nav-disabled: #2a3138;
+          --ok-bg: #173d22;
+          --ok-text: #8fe0a4;
+          --ok-border: #2f7a44;
+          --bad-bg: #472024;
+          --bad-text: #ffa9ae;
+          --bad-border: #8a3a41;
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      a { color: var(--link); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      button { font-family: inherit; cursor: pointer; }
+      [hidden] { display: none !important; }
+
+      /* ---------- Topbar (ala Moodle) ---------- */
+      .topbar {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; z-index: 40;
+      }
+      .topbar-inner {
+        max-width: 1320px; margin: 0 auto;
+        display: flex; align-items: center; gap: 22px;
+        padding: 10px 18px;
+      }
+      .topbar-note { font-size: .95rem; color: var(--muted); }
+      .userbox { margin-left: auto; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+      .userbox .uname { font-size: .95rem; }
+      .avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: var(--primary); color: #fff;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1rem;
+      }
+
+      .wrap { max-width: 1320px; margin: 0 auto; padding: 18px; }
+
+      /* ---------- Layar mulai ---------- */
+      .start-card {
+        background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+        box-shadow: var(--shadow); padding: 30px 32px; max-width: 760px; margin: 12px auto;
+      }
+      .start-card h1 { margin: 0 0 6px; font-size: 1.7rem; line-height: 1.25; }
+      .start-card .sub { color: var(--muted); margin: 0 0 18px; font-size: 1.02rem; }
+      .start-facts { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 22px; }
+      .fact {
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+        padding: 8px 14px; font-size: .95rem;
+      }
+      .fact b { font-size: 1.05rem; }
+      fieldset.duration { border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px 8px; margin: 0 0 24px; }
+      fieldset.duration legend { font-weight: 600; padding: 0 6px; }
+      .dur-opt {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 10px; border-radius: 6px; cursor: pointer; font-size: 1.05rem;
+      }
+      .dur-opt:hover { background: var(--surface-2); }
+      .dur-opt input { width: 22px; height: 22px; accent-color: var(--primary); flex: none; }
+      .btn-start {
+        width: 100%; background: var(--primary); color: #fff; border: 0; border-radius: 6px;
+        font-size: 1.2rem; font-weight: 600; padding: 16px 20px; min-height: 58px;
+      }
+      .btn-start:hover { background: var(--primary-hover); }
+      .start-note { color: var(--muted); font-size: .92rem; margin: 14px 0 0; text-align: center; }
+      .saved-panel {
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+        padding: 16px 18px; margin: 0 0 22px;
+      }
+      .saved-title { font-weight: 700; margin: 0 0 4px; font-size: 1.05rem; }
+      .saved-text { margin: 0 0 14px; color: var(--muted); }
+      .saved-text b { color: var(--text); }
+      .saved-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+      .saved-btns .btn { flex: 1; min-width: 200px; }
+
+      /* ---------- Timer ---------- */
+      .timer-row {
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        margin: 4px 0 16px; flex-wrap: wrap;
+      }
+      .timer-box {
+        border: 2px solid var(--timer-border); border-radius: 6px; background: var(--surface);
+        padding: 7px 18px; font-size: 1.12rem; font-weight: 700; color: var(--timer-text);
+        font-variant-numeric: tabular-nums; letter-spacing: .02em;
+      }
+      .timer-box.low { animation: pulse 1s infinite; }
+      @keyframes pulse { 50% { background: var(--bad-bg); } }
+      @media (prefers-reduced-motion: reduce) { .timer-box.low { animation: none; } }
+      .btn-hide {
+        background: var(--surface); border: 1px solid var(--border); color: var(--text);
+        border-radius: 6px; padding: 9px 16px; font-size: .95rem; min-height: 44px;
+      }
+      .btn-hide:hover { background: var(--surface-2); }
+
+      /* ---------- Tata letak ujian ---------- */
+      .quiz-grid {
+        display: grid; gap: 18px; align-items: start;
+        grid-template-columns: 190px minmax(0, 1fr) 250px;
+      }
+      .card {
+        background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+        box-shadow: var(--shadow);
+      }
+      .info-card { padding: 16px; }
+      .info-card .qnum { font-size: 1.15rem; font-weight: 700; margin: 0 0 4px; }
+      .info-card .qstatus { color: var(--muted); font-size: .95rem; margin: 0 0 14px; }
+      .flag-link { display: inline-flex; align-items: center; gap: 7px; font-size: .95rem; min-height: 32px; }
+      .flag-link svg { flex: none; }
+      .flag-link.on { color: var(--flag); font-weight: 600; }
+
+      .q-card { background: var(--qcard); border: 1px solid var(--qcard-border); border-radius: 6px; padding: 22px 24px; }
+      .q-text { font-size: 1.06rem; margin: 0 0 18px; }
+      .choose { font-weight: 400; margin: 0 0 8px; color: var(--text); }
+      .opt {
+        display: flex; gap: 12px; align-items: flex-start;
+        padding: 12px 12px; border-radius: 6px; cursor: pointer; font-size: 1.03rem;
+      }
+      .opt:hover { background: rgba(127, 160, 200, .18); }
+      .opt input { width: 21px; height: 21px; margin-top: 2px; accent-color: var(--primary); flex: none; cursor: pointer; }
+      .opt .letter { font-weight: 400; flex: none; }
+      .opt.picked { background: rgba(15, 108, 191, .13); }
+      .clear-link {
+        display: inline-flex; align-items: center; gap: 7px;
+        margin-top: 16px; padding: 10px 16px; min-height: 46px;
+        background: var(--surface); border: 1px solid var(--qcard-border); border-radius: 6px;
+        color: var(--link); font-size: 1rem; font-weight: 600;
+      }
+      .clear-link:hover { text-decoration: none; border-color: var(--primary); }
+
+      .page-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; }
+      .btn {
+        border: 0; border-radius: 6px; font-size: 1.05rem; font-weight: 600;
+        padding: 13px 22px; min-height: 52px;
+      }
+      .btn-prev { background: var(--btn-gray); color: #fff; }
+      .btn-prev:hover:not(:disabled) { background: var(--btn-gray-hover); }
+      .btn-next { background: var(--primary); color: #fff; }
+      .btn-next:hover:not(:disabled) { background: var(--primary-hover); }
+      .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+      /* ---------- Navigasi ujian ---------- */
+      .nav-card {
+        padding: 16px;
+        position: sticky; top: 76px;
+        max-height: calc(100vh - 94px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+      .nav-card h2 { font-size: 1.05rem; margin: 0 0 12px; }
+      .nav-cat { font-size: .95rem; font-weight: 600; margin: 14px 0 8px; }
+      .nav-cat:first-of-type { margin-top: 0; }
+      .nav-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+      .nav-cell {
+        position: relative; border: 1px solid var(--border); background: var(--surface);
+        border-radius: 4px; min-height: 40px; padding: 4px 0 6px;
+        font-size: .95rem; color: var(--text); line-height: 1.15;
+      }
+      .nav-cell:hover:not(:disabled) { border-color: var(--primary); }
+      .nav-cell.answered { background: linear-gradient(to top, var(--nav-answered) 46%, var(--surface) 46%); }
+      .nav-cell.current { border: 2px solid var(--text); font-weight: 700; }
+      .nav-cell.flagged::after {
+        content: ""; position: absolute; top: 0; right: 0;
+        border-style: solid; border-width: 0 11px 11px 0;
+        border-color: transparent var(--flag) transparent transparent;
+      }
+      .nav-cell:disabled { background: var(--nav-disabled); color: var(--muted); cursor: not-allowed; }
+      .nav-legend { font-size: .85rem; color: var(--muted); margin: 14px 0 0; line-height: 1.7; }
+      .nav-legend .sw { display: inline-block; width: 13px; height: 13px; border: 1px solid var(--border); border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+      .nav-legend .sw.ans { background: linear-gradient(to top, var(--nav-answered) 46%, var(--surface) 46%); }
+      .finish-link { display: inline-block; margin-top: 16px; font-size: 1rem; font-weight: 600; min-height: 34px; }
+
+      /* ---------- Modal konfirmasi ---------- */
+      .modal-back {
+        position: fixed; inset: 0; background: rgba(10, 15, 20, .55);
+        display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 60;
+      }
+      .modal {
+        background: var(--surface); color: var(--text); border-radius: 8px; max-width: 480px; width: 100%;
+        padding: 26px 28px; box-shadow: 0 12px 40px rgba(0,0,0,.3);
+      }
+      .modal h2 { margin: 0 0 10px; font-size: 1.3rem; }
+      .modal p { margin: 0 0 8px; }
+      .modal .warn { color: var(--bad-text); font-weight: 600; }
+      .modal-btns { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+      .modal-btns .btn { flex: 1; min-width: 180px; }
+      .btn-cancel { background: var(--btn-gray); color: #fff; }
+      .btn-cancel:hover { background: var(--btn-gray-hover); }
+      .btn-finish { background: var(--primary); color: #fff; }
+      .btn-finish:hover { background: var(--primary-hover); }
+
+      /* ---------- Hasil & review ---------- */
+      .result-head { padding: 26px 30px; text-align: center; margin-bottom: 18px; }
+      .result-head h1 { margin: 0 0 4px; font-size: 1.6rem; }
+      .result-head .timeout-note { color: var(--bad-text); font-weight: 600; margin: 0 0 6px; }
+      .score-big { font-size: 2.6rem; font-weight: 800; margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+      .score-sub { color: var(--muted); margin: 2px 0 14px; font-size: 1.05rem; }
+      .result-stats { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+      .btn-filter {
+        background: var(--surface); border: 1px solid var(--border); color: var(--text);
+        border-radius: 6px; padding: 11px 18px; font-size: 1rem; min-height: 48px; margin-right: 10px;
+      }
+      .btn-filter[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+      .btn-retry { background: var(--primary); color: #fff; border: 0; border-radius: 6px; padding: 13px 24px; font-size: 1.05rem; font-weight: 600; min-height: 52px; }
+      .btn-retry:hover { background: var(--primary-hover); }
+
+      .review-item { padding: 20px 22px; margin-bottom: 14px; }
+      .review-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+      .review-head .rn { font-size: 1.12rem; font-weight: 700; }
+      .badge { border-radius: 999px; padding: 3px 13px; font-size: .88rem; font-weight: 700; border: 1px solid; }
+      .badge.ok { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-border); }
+      .badge.bad { background: var(--bad-bg); color: var(--bad-text); border-color: var(--bad-border); }
+      .review-item .rq { margin: 0 0 14px; }
+      .ropt { display: flex; gap: 10px; padding: 9px 12px; border-radius: 6px; border: 1px solid transparent; margin-bottom: 4px; align-items: flex-start; }
+      .ropt .mark { flex: none; width: 22px; text-align: center; font-weight: 700; }
+      .ropt.is-key { background: var(--ok-bg); border-color: var(--ok-border); }
+      .ropt.is-key .mark { color: var(--ok-text); }
+      .ropt.is-user-wrong { background: var(--bad-bg); border-color: var(--bad-border); }
+      .ropt.is-user-wrong .mark { color: var(--bad-text); }
+      .ropt .tag { margin-left: auto; flex: none; font-size: .82rem; font-weight: 700; padding-top: 2px; }
+      .ropt.is-key .tag { color: var(--ok-text); }
+      .ropt.is-user-wrong .tag { color: var(--bad-text); }
+      .review-meta { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; font-size: .97rem; }
+      .review-meta p { margin: 0 0 6px; }
+      .review-meta .reason { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+      .empty-note { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 1.05rem; }
+
+      /* ---------- Responsif HP ---------- */
+      @media (max-width: 900px) {
+        .quiz-grid { grid-template-columns: 1fr; }
+        .info-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 12px 16px; }
+        .info-card .qnum { margin: 0; }
+        .info-card .qstatus { margin: 0; }
+        .info-card .flag-link { margin-left: auto; }
+        .wrap { padding: 12px; }
+        .q-card { padding: 18px 16px; }
+        .nav-grid { grid-template-columns: repeat(8, 1fr); }
+        .start-card { padding: 22px 18px; }
+        .page-nav .btn { flex: 1; padding: 13px 10px; font-size: 1rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-note">replika simulasi ujian dari sjt-ujikom</div>
+        <div class="userbox">
+          <span class="uname">Peserta Simulasi</span>
+          <span class="avatar" aria-hidden="true">P</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ LAYAR MULAI ============ -->
+    <main class="wrap" id="screen-start">
+      <div class="start-card">
+        <h1>Simulasi Ujian SJT Guru</h1>
+        <p class="sub">Latihan mengerjakan soal Situational Judgment Test (SJT) dengan tampilan yang sama seperti halaman ujian aslinya, supaya terbiasa sebelum ujian sungguhan.</p>
+        <div class="start-facts">
+          <div class="fact"><b>66</b> soal (nomor 3–68)</div>
+          <div class="fact">Soal <b>1–2</b> tidak tersedia</div>
+          <div class="fact"><b>1 soal</b> per halaman</div>
+        </div>
+        <div class="saved-panel" id="panel-progress" hidden>
+          <p class="saved-title">Simulasi belum selesai</p>
+          <p class="saved-text" id="progress-text"></p>
+          <div class="saved-btns">
+            <button class="btn btn-next" id="btn-resume" type="button">Lanjutkan simulasi</button>
+            <button class="btn btn-prev" id="btn-discard" type="button">Buang &amp; mulai dari awal</button>
+          </div>
+        </div>
+        <div class="saved-panel" id="panel-result" hidden>
+          <p class="saved-title">Hasil simulasi terakhir</p>
+          <p class="saved-text" id="last-result-text"></p>
+          <div class="saved-btns">
+            <button class="btn btn-prev" id="btn-reset" type="button">Reset simulasi</button>
+          </div>
+        </div>
+        <fieldset class="duration">
+          <legend>Pilih durasi simulasi</legend>
+          <label class="dur-opt"><input type="radio" name="durasi" value="90" checked /> 90 menit</label>
+          <label class="dur-opt"><input type="radio" name="durasi" value="60" /> 60 menit</label>
+          <label class="dur-opt"><input type="radio" name="durasi" value="30" /> 30 menit</label>
+          <label class="dur-opt"><input type="radio" name="durasi" value="0" /> Tanpa batas waktu</label>
+        </fieldset>
+        <button class="btn-start" id="btn-start" type="button">Mulai simulasi</button>
+        <p class="start-note">Jawaban tersimpan otomatis setiap kali Anda memilih. Hasil dan pembahasan muncul setelah ujian diselesaikan.</p>
+      </div>
+    </main>
+
+    <!-- ============ LAYAR UJIAN ============ -->
+    <main class="wrap" id="screen-quiz" hidden>
+      <div class="timer-row" id="timer-row">
+        <div class="timer-box" id="timer-box">Sisa waktu <span id="timer-text">0:00:00</span></div>
+        <button class="btn-hide" id="btn-timer-toggle" type="button">Sembunyikan</button>
+      </div>
+
+      <div class="quiz-grid">
+        <aside class="card info-card" aria-label="Info soal">
+          <p class="qnum">Soal <span id="info-num">3</span></p>
+          <p class="qstatus" id="info-status">Belum dijawab</p>
+          <a href="#" class="flag-link" id="flag-link">
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 14.5v-13" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3.4 1.8c2.2-1.2 3.4 1 5.6 0v4.4c-2.2 1-3.4-1.2-5.6 0z" fill="currentColor"/></svg>
+            <span id="flag-text">Tandai soal</span>
+          </a>
+        </aside>
+
+        <div>
+          <div class="q-card">
+            <p class="q-text" id="q-text"></p>
+            <p class="choose">Pilih satu:</p>
+            <div id="options"></div>
+            <a href="#" class="clear-link" id="clear-link" hidden><span aria-hidden="true">✕</span> Hapus pilihan saya</a>
+          </div>
+          <div class="page-nav">
+            <button class="btn btn-prev" id="btn-prev" type="button">Halaman sebelumnya</button>
+            <button class="btn btn-next" id="btn-next" type="button">Halaman selanjutnya</button>
+          </div>
+        </div>
+
+        <aside class="card nav-card" aria-label="Navigasi ujian">
+          <h2>Navigasi ujian</h2>
+          <div id="nav-groups"></div>
+          <p class="nav-legend">
+            <span class="sw ans"></span>Sudah dijawab<br />
+            Kotak dengan sudut merah = soal ditandai
+          </p>
+          <a href="#" class="finish-link" id="finish-link">Selesaikan ujian</a>
+        </aside>
+      </div>
+    </main>
+
+    <!-- ============ LAYAR HASIL ============ -->
+    <main class="wrap" id="screen-result" hidden>
+      <div class="card result-head">
+        <h1>Hasil Simulasi</h1>
+        <p class="timeout-note" id="timeout-note" hidden>Waktu habis — ujian diselesaikan otomatis.</p>
+        <p class="score-big"><span id="score-num">0</span> benar dari 66</p>
+        <p class="score-sub" id="score-sub"></p>
+        <div class="result-stats" id="result-stats"></div>
+        <div>
+          <button class="btn-filter" id="btn-filter" type="button" aria-pressed="false">Tampilkan hanya yang salah</button>
+          <button class="btn-retry" id="btn-retry" type="button">Ulangi simulasi</button>
+        </div>
+      </div>
+      <div id="review-list"></div>
+    </main>
+
+    <!-- ============ MODAL KONFIRMASI ============ -->
+    <div class="modal-back" id="modal-back" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <h2 id="modal-title">Selesaikan ujian?</h2>
+        <p id="modal-summary"></p>
+        <p class="warn" id="modal-warn"></p>
+        <p>Setelah diselesaikan, Anda tidak bisa mengubah jawaban lagi.</p>
+        <div class="modal-btns">
+          <button class="btn btn-cancel" id="btn-modal-cancel" type="button">Kembali mengerjakan</button>
+          <button class="btn btn-finish" id="btn-modal-finish" type="button">Ya, selesaikan ujian</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var QUESTIONS = [
+{"n":3,"q":"Suatu hari, salah satu peserta didik Anda terlibat dalam konflik dengan sebuah supermarket. Anda diberitahukan bahwa supermarket tersebut mengeluarkan aduan atas kasus pencurian, yang ditujukan kepada peserta didik Anda. Sebagai wali kelas, tindakan yang efektif dalam menanggapi aduan tersebut adalah ....","o":["membantu memediasi aduan dari pihak supermarket kepada pihak orang tua murid, kemudian menyampaikan kepada orang tua murid terkait rencana pembinaan yang akan diberikan pihak sekolah terhadap peserta didik","meneruskan aduan tersebut kepada tim Kesiswaan untuk ditindaklanjuti, serta mengusulkan rencana mitigasi atas kejadian serupa kepada Kepala Sekolah untuk menghindari kejadian terulang kembali","menyampaikan kepada pihak supermarket untuk menghubungi orang tua peserta didik, karena tindakan yang dilakukan oleh peserta didik di luar sekolah bukan tanggung jawab pihak sekolah","menghubungi orang tua murid dan menyampaikan aduan serta posisi pihak sekolah maupun orang tua, agar orang tua bertanggung jawab atas kerugian yang diderita oleh pihak supermarket"],"k":"A","g":"A","r":null},
+{"n":4,"q":"Setelah pandemi Covid-19 mereda, seluruh pembelajaran di sekolah menggunakan sistem luring dimana sebelumnya menggunakan sistem daring. Sudah dijalankan beberapa bulan, ternyata tak sedikit peserta didik yang mudah mengantuk dan kurang termotivasi selama pembelajaran luring. Data menunjukkan hasil pembelajaran juga tidak maksimal. Hal yang sebaiknya Anda dan guru-guru lain lakukan adalah ....","o":["menaruh atensi tentang masalah, tetapi perlu diskusi lebih lanjut oleh para guru dan warga sekolah untuk mengatasinya","mengidentifikasi solusi yang mungkin untuk meningkatkan motivasi dan hasil pembelajaran serta mengimplementasikannya","merancang strategi perubahan yang melibatkan peserta didik, guru, dan staf sekolah untuk meningkatkan kualitas pembelajaran dalam sistem luring","memberikan perhatian atau tindakan terhadap masalah kurangnya motivasi dan hasil pembelajaran yang buruk dalam sistem luring sesekali"],"k":"C","g":"C","r":null},
+{"n":5,"q":"Anda dipercaya untuk mengelola tim persiapan penerimaan peserta didik baru di sekolah Anda. Anda diberi target, peningkatan 5% jumlah pendaftar dalam zonasi yang melakukan pendaftaran ulang dari tahun lalu. Target tersebut terkesan berat karena sulit cukup banyak sekolah swasta yang memiliki strategi promosi yang kompetitif di daerah Anda. Pada situasi tersebut yang Anda lakukan adalah ....","o":["mempertimbangkan menambah strategi promosi baru karena kurangnya minat peserta didik setelah melihat jumlah pendaftar yang tertarik untuk bersekolah di sekolah Anda","mendiskusikan dengan orang tua calon peserta didik mengenai keinginan putra-putrinya untuk kesempatan diterima di sekolah Anda dengan berbagai fasilitas dan kegiatan yang ada","menerima amanah tersebut dengan yakin dan optimis sebab masih banyak peserta didik berkualitas yang tertarik untuk bersekolah di tempat Anda","bersama tim melakukan lebih dari satu strategi promosi karena saat ini banyak peluang kerjasama yang sudah terjalin dengan mitra untuk menunjang pembelajaran yang menarik"],"k":"D","g":"D","r":null},
+{"n":6,"q":"Penggunaan kecerdasan buatan atau artificial intelligence (AI) seperti ChatGPT semakin luas. Penggunaan ChatGPT yang bijak dapat membantu peserta didik untuk lebih memahami materi dan secara cepat menemukan jawaban terkait materi-materi yang dirasa masih membingungkan. Namun, berkembang isu bahwa beberapa peserta didik menggunakan ChatGPT untuk menyelesaikan tugas sekolahnya tanpa ada hasil pemikirannya sendiri. Sikap Anda dalam menanggapi hal tersebut adalah ....","o":["mengecek secara acak tugas yang dikerjakan oleh para peserta didik, untuk memastikan bahwa tidak ada yang menggunakan ChatGPT dalam mengerjakan tugas-tugas yang diberikan oleh Anda","memberikan pemahaman kepada peserta didik bahwa AI bukan sebagai pengganti pemikiran dan usaha mereka sendiri, dan memantau kemajuan peserta didik dalam menyelesaikan tugasnya","melakukan sosialisasi kepada peserta didik terkait kegunaan yang benar dan cara menggunakan ChatGPT dengan bijaksana, untuk menghindari penyalahgunaan ChatGPT oleh peserta didik","membuat peraturan apabila ada peserta didik yang menggunakan ChatGPT sebagai pengganti usaha dan pemikiran mereka sendiri maka akan mendapatkan nilai 0 pada mata pelajaran tersebut"],"k":"B","g":"C","r":"B lebih tepat karena tidak hanya mensosialisasikan penggunaan bijak, tetapi menanamkan pemahaman bahwa AI bukan pengganti pemikiran sendiri disertai pemantauan berkelanjutan atas kemajuan peserta didik."},
+{"n":7,"q":"Sebagai guru yang tergabung dalam tim kurikulum di sekolah, Anda melihat beberapa guru senior kurang serius dalam mengajar, bahkan terkadang tidak mengajar tanpa alasan. Di sisi lain, beberapa guru-guru senior ini memiliki totalitas dalam mengembangkan guru junior pada kegiatan-kegiatan peningkatan kompetensi yang diadakan di sekolah. Fenomena ini telah terjadi beberapa tahun terakhir dan sepertinya cenderung dibiarkan. Pada kondisi tersebut tindakan yang akan Anda lakukan adalah ....","o":["mencatat perilaku guru senior yang kurang serius dalam mengajar, tetapi tidak mengambil tindakan tegas atau memberikan teguran yang tepat waktu","mempertimbangkan konsekuensi perilaku guru senior yang kurang serius dalam mengajar, bahkan jika hal ini berdampak negatif pada hasil unit kerja mereka","memberikan umpan balik yang jelas dan konstruktif kepada guru senior yang kurang serius dalam mengajar, dan pentingnya menetapkan konsekuensi yang diperlukan untuk kemudian hari","memberikan afirmasi kepada guru yang terlibat dalam kegiatan pengembangan kompetensi dan serius mengajar secara konsisten di kelas yang diampu setiap bulan"],"k":"C","g":"C","r":null},
+{"n":8,"q":"Untuk pertama kalinya, anak dari Kepala Sekolah menjadi peserta didik di sekolah Anda. Saat pembagian kelas, ternyata Anda merupakan wali kelas atas peserta didik tersebut. Rekan guru lain bertanya-tanya, apa yang akan Anda lakukan dalam menghadapi situasi yang cukup rumit tersebut. Anda akan menjelaskan ....","o":["tidak ada yang membedakan antara peserta didik tersebut dengan peserta didik lainnya, hanya saja terlihat membingungkan karena orang tua peserta didik Anda bekerja sebagai atasan di sekolah","Anda akan menjalankan tugas sebagai wali kelas secara objektif dan adil, serta menjalin komunikasi yang jelas dengan Kepala Sekolah sebagai orang tua peserta didik untuk mencegah potensi konflik kepentingan","Kepala Sekolah yang perlu memahami dan menyesuaikan posisi dan tugasnya, Beliau harus objektif dan mengetahui kapan menyesuaikan posisi menjadi orang tua dan kapan harus menjadi Kepala Sekolah","Anda yakin akan bersikap profesional dalam bekerja sama dengan Kepala Sekolah, sehingga kehadiran anak Kepala Sekolah sebagai peserta didik tidak akan mengubah kinerja Anda sebagai wali kelas"],"k":"B","g":"B","r":null},
+{"n":9,"q":"Anda adalah seorang guru, yang mengetahui masih banyak guru lain yang terbiasa menggunakan lembar latihan soal dalam pelaksanaan asesmen di kelas. Padahal Anda mengetahui bahwa kemampuan adaptasi penggunaan teknologi penting untuk menunjang efisiensi dan visual interaktif ke para peserta didik. Namun, belum ada program khusus dari sekolah yang menyediakan kemampuan ini untuk dipelajari oleh semua guru. Langkah yang akan Anda lakukan sebagai guru yang sudah menerapkannya adalah ....","o":["memberikan fokus pada metode yang Anda terapkan dalam membantu para guru dengan memperhatikan perubahan yang diperlukan oleh rekan-rekan guru","mengajukan diri untuk membuka kelas berbagi praktik baik dengan tema teknologi dalam menerapkan kuis interaktif agar dapat membudaya","mengajukan diri kepada kepala sekolah untuk menjadi koordinator program inovasi penerapan teknologi dalam proses pembelajaran","memberikan informasi awal kepada para guru yang tertarik memulai penggunaan teknologi dalam pembelajaran termasuk penggunaan kuis interaktif"],"k":"B","g":"B","r":null},
+{"n":10,"q":"Ibu Ela merupakan guru junior di sekolah Anda. Meskipun masih muda, namun Anda menganggap bahwa Ibu Ela memiliki banyak pengalaman dan keahlian di bidang pendidikan. Suatu hari Anda memperoleh pengumuman pendaftaran program guru berprestasi dan menyarankan Ibu Ela untuk mengikuti program tersebut. Namun, Ibu Ela ragu karena merasa dirinya masih kurang pengalaman. Tindakan yang Anda lakukan sebagai guru adalah ....","o":["meminta ibu Ela untuk mempertimbangkan tawarannya karena merasa kompetensi bisa dikembangkan di hal lain","menyerahkan keputusan pada ibu ela, karena ranah Anda hanya pada membantu menyampaikan informasi","mengirimkan informasi terkait pendaftaran guru berprestasi agar Ibu Ela segera mempersiapkan berkasnya","memberi motivasi pada Ibu Ela bahwa program guru berprestasi sangat sesuai dengan kompetensinya"],"k":"D","g":"D","r":null},
+{"n":11,"q":"Anda dan seorang guru junior telah dipercayakan untuk mendukung Kepala Sekolah dalam mengelola dana BOS berdasarkan Rencana Kegiatan dan Anggaran Sekolah (RKAS) selama satu tahun ajaran. Anda memberikan tanggung jawab pengelolaan administrasi pertanggungjawaban dana BOS kepada guru junior tersebut. Setelah satu minggu sejak rangkaian program penerimaan siswa tahun ajaran baru selesai dilaksanakan, Anda menemukan bahwa tidak ada catatan pertanggungjawaban dalam RKAS. Penelitian lebih lanjut mengungkapkan bahwa rekan guru junior Anda terlewat dalam melakukan pemantauan dan koordinasi dengan tim penerimaan siswa tahun ajaran baru, yang mengakibatkan penundaan dalam proses pertanggungjawaban. Menanggapi hal tersebut, hal yang sebaiknya Anda lakukan adalah ....","o":["memberikan saran konstruktif tentang bagaimana proses pemantauan pertanggungjawaban dana BOS dan koordinasi dengan tim lain untuk mendampingi proses pelaporan kegiatan yang menggunakan alokasi dana BOS","melakukan koordinasi dengan Kepala Sekolah terkait kendala-kendala yang dihadapi dalam pengelolaan dana BOS dan mencari solusi bersama untuk pengelolaan dan yang lebih baik agar tidak terulang di masa mendatang","mendekati guru junior tersebut dengan sikap kooperatif dan memberikan bimbingan agar tidak terulang serta segera berkoordinasi dengan tim penerimaan siswa tahun ajaran baru untuk pertanggungjawaban","meminta guru junior tersebut untuk merefleksikan diri atas kelalaiannya dan memintanya untuk mencoba menyelesaikan masalah secara mandiri sebagai bentuk tanggung jawab untuk pengelolaan alokasi dana BOS"],"k":"C","g":"B","r":"Sebagai rekan senior pemberi tanggung jawab, yang paling tepat adalah membimbing guru junior secara kooperatif dan memastikan pertanggungjawaban segera dikoordinasikan dengan tim PPDB (C), bukan sekadar berkoordinasi dengan Kepala Sekolah (B)."},
+{"n":12,"q":"Tahun ini, kasus peserta didik yang datang terlambat mengalami peningkatan dari tahun sebelumnya. Selain kasus keterlambatan peserta didik, kasus kedisiplinan guru dan karyawan juga mengalami peningkatan. Hal ini dapat berdampak pada penurunan akreditasi sekolah yang akan dilakukan dalam waktu dekat. Upaya yang dapat Anda lakukan terkait kondisi ini adalah ...","o":["Mengajukan diadakannya program kepada Kepala Sekolah seperti mengadakan rapat dan evaluasi secara berkala untuk menurunkan jumlah kasus kedisiplinan yang dilakukan oleh warga sekolah","Mengajak rekan guru lain untuk ikut aktif mengingatkan kepedulian atas kedisiplinan warga sekolah dalam berbagai kesempatan, seperti saat upacara, acara sekolah, hingga pembukaan pembelajaran di kelas","Mengumpulkan data dan informasi terkait kasus kedisiplinan yang terjadi serta mencari akar penyebabnya, kemudian memberikan temuan tersebut kepada Kepala Sekolah untuk ditindaklanjuti","Membentuk tim bersama rekan guru dan kesiswaan untuk meningkatkan kedisiplinan dengan cara mengingatkan, menegur, dan memberikan sanksi kepada warga sekolah"],"k":"B","g":"B","r":null},
+{"n":13,"q":"Peningkatan suhu ekstrem mengakibatkan banyak peserta didik dan guru yang mengeluhkan rasa lelah dan konsentrasi menurun. Sebagai wali kelas, Anda berinisiatif untuk membeli kipas tambahan di kelas Anda. Anda menyampaikan hal ini kepada peserta didik, dan mereka setuju menggunakan sebagian uang kas untuk membeli kipas. Namun, uang kas saja tidak cukup untuk memenuhi biaya pembelian kipas. Langkah tepat yang dapat Anda lakukan adalah ....","o":["mengatur kembali alokasi penggunaan uang kas kelas bersama dengan bendahara kelas, agar lebih banyak dana kas yang dapat digunakan untuk pembelian kipas","menyampaikan jumlah dana dan kekurangan dana kepada peserta didik, untuk kemudian melakukan penggalangan dana sumbangan untuk menutupi kekurangan biaya","meminta ketua dan bendahara kelas menyusun proposal anggaran biaya pembelian kipas agar lebih transparan, kemudian mengajukan proposal kepada pihak donatur","menghitung kembali kekurangan biaya yang dibutuhkan, kemudian menyusun proposal anggaran biaya pembelian kipas secara rinci untuk diajukan kepada pihak donatur"],"k":"C","g":"C","r":null},
+{"n":14,"q":"Anda sebagai koordinator guru mata pelajaran X tentu mengharapkan hasil asesmen sumatif yang unggul untuk seluruh peserta didik Anda. Anda menyadari bahwa rata-rata hasil asesmen sumatif peserta didik di mata pelajaran X semester ini belum memenuhi target yang telah ditetapkan. Anda menemukan bahwa beberapa guru di tim kombel (kelompok belajar) kecil Anda masih menggunakan metode pengajaran yang lama dan tradisional. Pada kondisi tersebut langkah yang akan Anda lakukan adalah ....","o":["membebaskan guru-guru menggunakan metode pembelajaran yang sesuai minat masing-masing, dengan catatan dapat memenuhi target kerja yang diharapkan dalam asesmen sumatif","mengorganisir pelatihan atau workshop khusus untuk guru-guru agar mereka dapat memahami dan menerapkan metode pengajaran terbaru yang terbukti efektif","peduli terhadap hasil asesmen sumatif dan bekerja sama dengan guru-guru untuk mengidentifikasi masalah dalam pembelajaran dengan mengadakan pertemuan rutin mingguan","mendelegasikan salah satu anggota guru untuk mencari pelatihan di luar kelas yang lebih efektif dan efisien agar diterapkan bersama di sekolah sesuai tujuan"],"k":"C","g":"C","r":null},
+{"n":15,"q":"Anda adalah seorang guru yang mengajar di sebuah sekolah menengah. Suatu ketika, Anda dipenuhi banyak tugas yang harus diselesaikan, termasuk menyusun rencana pelajaran, mengevaluasi tugas peserta didik, menghadiri rapat staf, dan mempersiapkan materi pelajaran untuk esok hari. Saat Anda mulai mengevaluasi tugas peserta didik, Anda mendapatkan panggilan dari seorang orang tua yang memiliki kekhawatiran tentang kemajuan akademik anak mereka. Mereka meminta pertemuan darurat dengan Anda untuk membahas hal ini. Tindakan yang Anda lakukan adalah ....","o":["berfokus pada menyelesaikan tugas-tugas yang ada dan menjadwalkan pertemuan dengan orang tua pada pengambilan rapor","memahami kekhawatiran yang dirasakan orang tua dan segera menanggapi panggilan dengan menetapkan waktu pertemuan yang sesuai","mengatur jadwal khusus pertemuan dengan orang tua dan melanjutkan mengevaluasi tugas-tugas peserta didik dan pekerjaan lainnya","memahami kekhawatiran orang tua, namun mengatur waktu pertemuan di beberapa hari berikutnya agar bisa menyelesaikan tugas-tugas yang sudah ada"],"k":"B","g":"B","r":null},
+{"n":16,"q":"Setiap peserta didik memiliki kemampuan belajar yang beragam. Cara komunikasi yang paling efektif agar seluruh peserta didik dengan tingkat kemampuan yang berbeda-beda mampu memahami materi pembelajaran adalah ....","o":["memberikan pendampingan dan pengajaran tambahan kepada peserta didik yang memiliki kemampuan dibawah rata-rata","menyederhanakan penyampaian materi, salah satunya dengan memberikan contoh aplikasi teori yang mudah dipahami","meminta peserta didik untuk terlebih dahulu membaca secara mandiri materi yang akan dibahas pada pertemuan selanjutnya","mengelompokkan peserta didik berdasarkan tingkat kemampuannya untuk diberikan metode pengajaran yang berbeda"],"k":"B","g":"A","r":"Soal menanyakan cara komunikasi efektif untuk SELURUH peserta didik beragam kemampuan; menyederhanakan penyampaian dengan contoh aplikatif yang mudah dipahami (B) menjangkau semua, sedangkan pendampingan tambahan (A) hanya menyasar kelompok tertentu."},
+{"n":17,"q":"Sebagai seorang pendidik, Anda perlu mengetahui metode pembelajaran yang tepat dan sesuai dengan kebutuhan peserta didik. Apabila Anda diminta untuk mengajar peserta didik baru, cara Anda dalam menentukan metode pembelajaran adalah dengan ....","o":["menggunakan metode pembelajaran yang sudah pernah digunakan sebelumnya sesuai dengan materi pembelajaran yang akan diberikan, karena sudah terbukti efektif digunakan pada berbagai peserta didik","melakukan asesmen awal disertai evaluasi berkala, untuk mengetahui tingkat pemahaman peserta didik secara akurat, kemudian merancang metode pembelajaran berdasarkan hasil asesmen yang telah diperoleh","meminta referensi dari rekan guru yang pernah mengajar peserta didik tersebut, kemudian melakukan penyesuaian berdasarkan materi pembelajaran, sumber daya, dan hasil asesmen seiring berjalannya waktu","merancang metode pembelajaran berdasarkan pengalaman dan materi pembelajaran, lalu melakukan penyesuaian berdasarkan hasil evaluasi metode pembelajaran terhadap tingkat pemahaman peserta didik"],"k":"B","g":"B","r":null},
+{"n":18,"q":"Budi merupakan peserta didik di kelas Anda yang sering terlambat dan tidak mengerjakan tugas. Suatu hari, Anda mendapatkan laporan dari rekan guru lain bahwa Budi ketahuan merokok di area belakang sekolah. Mendengar laporan tersebut, hal pertama yang akan Anda lakukan adalah ....","o":["mengecek kebenarannya terlebih dahulu, memastikan bahwa laporan yang Anda terima adalah fakta","memanggil orang tua Budi ke sekolah untuk mendiskusikan perilaku serta sanksi terhadap Budi","menegur Budi atas pelanggaran peraturan yang ia lakukan sesuai dengan aturan sekolah","memanggil Budi secara personal untuk membahas perilakunya yang melanggar peraturan sekolah"],"k":"A","g":"A","r":null},
+{"n":19,"q":"Zia merupakan salah satu peserta didik Anda yang berpre[tertutup popup \"Sisa waktu\"]yang kurang mampu. Suatu hari, Zia mendatangi Anda untuk meminta masukan atas pendidikannya. Zia mengatakan bahwa ia bingung ingin melanjutkan sekolah, namun keluarganya meminta ia berhenti sekolah dan bekerja untuk membantu perekonomian keluarga. Hal yang Anda dapat lakukan adalah ...","o":["meyakinkan Zia dan keluarganya bahwa pendidikan dapat membantu Zia memperoleh pekerjaan yang lebih layak, dengan memberikan bukti konkrit seperti rata-rata penghasilan pada tiap jenjang pendidikan","membantu dan mendampingi Zia dan keluarganya dalam mengambil keputusan, dengan membuat daftar keuntungan, kerugian dan alternatif solusi dari kedua pilihan tersebut untuk dipahami oleh Zia dan keluarganya","meminta bantuan kepada Kepala Sekolah untuk menyediakan bantuan dana pendidikan untuk Zia, karena Zia merupakan salah satu peserta didik berprestasi yang sangat disayangkan apabila putus sekolah","mendampingi dan memberikan informasi kepada orang tua Zia terkait berbagai alternatif untuk memperoleh bantuan dana pendidikan seperti beasiswa hingga lomba berhadiah yang dapat diikuti Zia"],"k":"D","g":"D","r":null},
+{"n":20,"q":"Anda merupakan ketua forum yang memfasilitasi berkumpulnya guru mata pelajaran di kabupaten/kota Anda mengajar. Selama ini Anda kesulitan dalam membuat kegiatan pada forum tersebut. Tahun ini sekolah Anda memiliki 3 guru baru. Mereka bertiga masih muda dan aktif berorganisasi di masa kuliah, tetapi masih minim pengalaman termasuk terlibat dan aktif dalam forum di dunia pendidikan termasuk sekolah. Tindakan yang Anda lakukan adalah ....","o":["meminta guru-guru untuk fokus mengajar karena masa kerja yang masih baru","mengajak guru bergabung dan menceritakan program forum perkumpulan yang sudah berjalan","meminta ide dari guru-guru baru tentang kegiatan forum perkumpulan guru mata pelajaran","mengajak guru-guru tersebut untuk bergabung dan memberikan ide tentang pengembangan forum"],"k":"D","g":"D","r":null},
+{"n":21,"q":"Sekolah Anda memiliki kewajiban sebagai sekolah inklusi, dimana pada tahun ajaran baru terdapat peserta didik Anak Berkebutuhan Khusus (ABK) yang diterima di sekolah Anda. Namun, Anda dan rekan guru lain merasa bahwa kemampuan kalian dalam mendampingi ABK masih sangat minim dan teoritis, sehingga masih membutuhkan pelatihan terkait pendampingan ABK. Tindakan apa yang dapat Anda lakukan adalah ....","o":["Membentuk tim panitia untuk merancang dan mengusulkan pelaksanaan pelatihan guru kepada Kepala Sekolah, dengan mengundang pemateri profesional seperti Psikolog dan rekan Guru dari sekolah Inklusi","Berpartisipasi aktif dalam mencari pelatihan pendampingan Anak Berkebutuhan Khusus untuk guru pada jenjang pendidikan Anda yang dapat diikuti secara mandiri oleh Anda dan rekan guru lain","Mencari informasi dan memberikan referensi terkait pemateri profesional seperti Psikologi dan rekan Guru dari sekolah inklusi yang bersedia untuk memberikan pelatihan pendampingan di sekolah Anda","Menyusun dan menyebarkan proposal penyelenggaraan acara pelatihan kepada pihak terkait, seperti Kepala Sekolah maupun pemateri profesional, agar acara terselenggara secara profesional dan terstandar"],"k":"A","g":"B","r":"Kebutuhan pelatihannya kolektif (seluruh guru minim kemampuan mendampingi ABK), sehingga yang paling tepat adalah mengusulkan pelatihan profesional di sekolah dengan pemateri ahli seperti psikolog dan guru sekolah inklusi (A), bukan sekadar mencari pelatihan mandiri perorangan (B)."},
+{"n":22,"q":"Anda mendapatkan kepercayaan dari kepala sekolah sebagai koordinator dalam peringatan Hari Kemerdekaan yang melibatkan unsur guru dan tenaga kependidikan. Anda diminta melibatkan petugas utama seperti penanggungjawab rangkaian acara di tahun sebelumnya. Namun, beberapa sudah pindah atau sedang cuti. Jika Anda melibatkan petugas baru, timbul kekhawatiran bahwa mereka belum siap. Pada kondisi tersebut hal yang seharusnya Anda lakukan adalah ....","o":["mendorong kolaborasi antara petugas lama untuk membimbing petugas baru dalam memastikan keberhasilan upacara peringatan Hari Kemerdekaan","memvalidasi kesiapan petugas baru dan menetapkan mereka dalam tim penuh terlepas pelatihan yang diperoleh dibatasi waktu pelaksanaan yang dekat","memberi kesempatan pada petugas baru walaupun mereka belum dapat dukungan atau pelatihan yang cukup, anda perlu mendorong keterlibatan mereka","memberikan pelatihan singkat kepada petugas baru untuk memastikan mereka memiliki pemahaman dasar tentang tugas mereka dalam upacara"],"k":"A","g":"A","r":null},
+{"n":23,"q":"Anda adalah seorang koordinator salah satu mata pelajaran dan saat ini Anda sedang bekerja dalam kelompok guru yang bertanggung jawab untuk merancang program pembelajaran baru yang akan digunakan di semester depan. Setiap anggota tim memiliki pandangan yang berbeda tentang cara terbaik untuk merancang program ini. Upaya yang akan Anda lakukan dalam situasi ini adalah ....","o":["memengaruhi anggota tim untuk mengikuti pendekatan yang saya usulkan karena sebagai koordinator harus mampu memimpin","menghindari konflik dengan anggota tim serta menggunakan pendekatan yang dapat dilaksanakan oleh seluruh anggota tim","merancang program seperti semester sebelumnya dengan beberapa penyesuaian dan modifikasi berdasarkan evaluasi pembelajaran","mendengarkan dengan cermat pandangan anggota tim dan berusaha untuk mencapai kesepakatan bersama sebagai satu tim komunitas guru"],"k":"D","g":"B","r":"Kepemimpinan koordinator yang paling tepat adalah mendengarkan pandangan anggota tim dan mencapai kesepakatan bersama (D), bukan sekadar menghindari konflik dengan memilih pendekatan yang mudah dilaksanakan semua orang (B)."},
+{"n":24,"q":"Peserta didik di sekolah Anda akhir-akhir ini banyak yang terkena sakit demam berdarah sehingga tidak dapat masuk sekolah dalam waktu cukup lama. Wabah demam berdarah ini sebenarnya telah terjadi berkali-kali, biasanya setiap musim hujan. Selain mengakibatkan peserta didik sakit, mereka pun tertinggal pelajaran cukup banyak. Berdasarkan fenomena tersebut, tindakan yang semestinya Anda lakukan adalah ....","o":["memberikan informasi dasar tentang demam berdarah kepada peserta didik sebelum mengambil tindakan lebih lanjut","mempertimbangkan adanya tindakan preventif atau edukasi tentang bagaimana cara mencegah penularan demam berdarah","membentuk tim kerja dengan pihak kesehatan, pemerintah setempat, dan organisasi terkait untuk memitigasi risiko wabah demam berdarah","mengajukan program edukasi dan kesadaran tentang demam berdarah ke seluruh warga sekolah yang diinisiasi oleh guru-guru internal"],"k":"C","g":"C","r":null},
+{"n":25,"q":"Anda baru saja dimutasi ke sekolah luar kota yang jaraknya cukup jauh dengan domisili Anda saat ini. Tentunya, terdapat perbedaan budaya seperti bahasa dan kebiasaan dengan yang Anda miliki. Berdasarkan informasi yang Anda ketahui, banyak masyarakat setempat yang memiliki stigma negatif terhadap suku lain. Sikap yang Anda tunjukkan adalah ....","o":["menyadari adanya stigma negatif terhadap Anda sebagai pendatang sehingga Anda berusaha mengurangi interaksi yang tidak perlu untuk menetralkan situasi hingga stigma terhadap Anda hilang","bersikap sopan dan menghormati budaya setempat untuk mengurangi resiko mendapatkan stigma negatif, serta berusaha menyesuaikan diri dengan mempelajari keadaan dan kebiasaan warga setempat","bersikap profesional dan berfokus pada kewajiban Anda sebagai guru, menghindari konflik serta mencoba berinteraksi seperlunya saja hingga stigma negatif terhadap Anda dapat mereda dengan sendirinya","menghargai budaya setempat dengan cara mengakrabkan diri dan mengikuti kebiasaan rekan guru lain di sekolah, meskipun terkadang Anda merasa tidak nyaman dengan kebiasaan tersebut"],"k":"B","g":"B","r":null},
+{"n":26,"q":"Sekolah Cemerlang kedatangan guru baru dari luar pulau. Di sekolah tersebut, masih banyak pandangan negatif terhadap orang yang berbeda suku. Ditambah, guru baru tersebut berstatus guru tidak tetap, berbeda dengan mayoritas guru lainnya di sekolah tersebut yang berstatus pegawai tetap. Kepala Sekolah membuat program baru terkait perangkat pembelajaran dan membagi guru-guru ke dalam kelompok kecil. Kebetulan Anda diminta untuk satu kelompok dengan guru baru, maka sikap Anda sebaiknya ....","o":["bersikap positif dan mencoba menjalin interaksi dengan seluruh guru dalam kelompok, sekaligus mendorong guru baru tersebut untuk memperkenalkan diri dan lebih aktif berpartisipasi dalam kelompok agar lebih dikenal oleh rekan guru lainnya","bersikap profesional dan tidak memihak maupun menilai rekan guru lain secara negatif atas pandangan mereka terhadap satu sama lain, tetap berinteraksi dengan seluruh rekan guru termasuk guru baru apabila dibutuhkan saja","bersikap positif dengan mengajak seluruh guru berpartisipasi aktif, mengajak rekan guru baru berkenalan, serta mendorong rekan guru lain untuk menyambut dan berkenalan dengan guru baru tersebut agar program berjalan dengan lancar","bersikap netral dan berperan aktif maupun berinteraksi dengan rekan guru dalam kelompok tanpa membeda-bedakan latar belakang maupun status kepegawaian, tetap fokus pada realisasi program yang dibuat oleh Kepala Sekolah"],"k":"A","g":"D","r":"Sikap netral yang pasif tidak menyelesaikan stigma/pengucilan terhadap guru baru; yang paling efektif adalah aktif membantunya berkenalan dan berpartisipasi agar diterima rekan-rekannya."},
+{"n":27,"q":"Terdapat peserta didik yang melakukan perundungan. Menurut informasi yang Anda dengar, korban mengejek pelaku terlebih dahulu kemudian pelaku marah dan mengajak teman-temannya untuk melakukan perundungan yang lebih fatal kepada korban. Sikap Anda sebagai salah satu guru baru di sekolah tersebut adalah ....","o":["memastikan bahwa informasi yang Anda terima valid, kemudian memanggil pelaku dan korban untuk diberikan teguran dan sanksi atas tindakan yang mereka lakukan, karena mereka memiliki andil yang sama besarnya atas perundungan tersebut","memastikan kebenaran informasi yang Anda peroleh dari kedua peserta didik yang menjadi pelaku dan korban serta saksi dari kedua belah pihak, kemudian meneruskan informasi tersebut kepada pihak kesiswaan untuk ditindaklanjuti","memanggil pelaku, korban dan saksi secara terpisah untuk meminta penjelasan kronologis kejadian perundungan, kemudian memberikan pengertian bahwa perundungan dalam bentuk dan sekecil apapun tidak pantas dilakukan","meminta klarifikasi kronologis kejadian pada seluruh yang terlibat (pelaku, korban dan saksi), memberikan pemahaman dan peringatan atas kesalahan mereka masing-masing dan meminta mereka untuk saling bermaafan"],"k":"B","g":"D","r":"Sebagai guru baru, langkah prosedural yang tepat adalah memverifikasi informasi dari semua pihak lalu meneruskannya ke kesiswaan untuk ditindaklanjuti, bukan memberi sanksi atau sekadar mendamaikan sendiri."},
+{"n":28,"q":"Salah satu peserta didik Anda mengeluhkan tentang materi pembelajaran yang dia rasa kurang relevan dengan kehidupan sehari-hari. Ia beranggapan bahwa tidak semua materi dapat ia terapkan di kehidupan nyata sehingga ia mempertanyakan manfaat mempelajari materi tersebut. Anda sebagai guru terkadang merasakan hal yang sama. Apa yang Anda lakukan untuk mengatasi hal tersebut?","o":["Merancang pembelajaran dengan mengaitkan materi agar sesuai dengan kasus-kasus di kehidupan nyata.","Mencoba memberi penjelasan bahwa apa yang dipelajari kelak akan bermanfaat saat ia memasuki dunia kerja.","Menugasi peserta didik untuk mencari kaitan materi yang dipelajari dengan kehidupan nyata untuk didiskusikan bersama.","Menyampaikan manfaat dan tujuan mempelajari materi yang akan dibahas kepada peserta didik di setiap pertemuan.","Merencanakan tujuan pembelajaran yang kontekstual sesuai dengan kondisi ataupun situasi peserta didik."],"k":"A","g":"D","r":"Menyampaikan manfaat tiap pertemuan bersifat verbal-persuasif; yang paling efektif menjawab keluhan relevansi adalah merancang pembelajaran yang benar-benar mengaitkan materi dengan kasus nyata."},
+{"n":29,"q":"Saat ini Anda sedang merancang asesmen yang akan digunakan dalam proses pembelajaran. Akan tetapi, Anda mendapati kondisi peserta didik yang cenderung kesulitan untuk mengingat materi yang diajarkan. Sebagai guru, apa yang akan Anda lakukan untuk mengatasi hal tersebut?","o":["Mereviu materi pelajaran sebelumnya sebelum melanjutkan pembahasan materi yang baru.","Membuat sesi diskusi dan tanya jawab terkait materi yang sulit dimengerti dan dipahami dengan baik.","Membuat penilaian bagi peserta didik yang aktif bertanya dan menjawab dalam proses pembelajaran.","Membuat kelompok diskusi dan meminta setiap kelompok mempresentasikan hasil diskusinya.","Berdiskusi dengan guru lain dalam perancangan asesmen yang cocok kepada peserta didik."],"k":"B","g":"B","r":null},
+{"n":30,"q":"Anda melihat media pembelajaran dari sekolah lain dengan interaktif sehingga proses asesmen dapat dilaksanakan dalam waktu yang bersamaan dengan pembelajaran praktik peserta didik. Cara ini aplikatif diterapkan di sekolah Anda, tetapi memerlukan waktu yang lebih lama dan biaya yang lebih besar. Apa yang Anda lakukan?","o":["Memodifikasi media yang tersedia dengan mengkaji penggunaan waktu dan biaya.","Mengadaptasi media pembelajaran agar bisa memberikan hasil yang lebih tepat.","Menunda penerapan media pembelajaran karena sebaiknya dipersiapkan lebih matang.","Mencari media pembelajaran lain dengan biaya dan waktu lebih cocok.","Menerapkan media pembelajaran yang telah ada semaksimal mungkin."],"k":"A","g":"B","r":"Kendala utamanya adalah waktu dan biaya, sehingga yang paling tepat adalah memodifikasi media yang tersedia dengan mengkaji penggunaan waktu dan biaya, bukan sekadar mengejar hasil yang lebih tepat."},
+{"n":31,"q":"Model pembelajaran project based learning (PjBL) telah diterapkan di sekolah Anda. Namun, beberapa orang tua peserta didik mengeluhkan model pembelajaran ini karena mereka merasa bahwa model ini justru membingungkan bagi peserta didik. Di sisi lain, model belajar ini sudah ditetapkan menjadi model belajar baku di sekolah Anda bahkan di kurikulum yang baru. Sebagai guru, tindakan Anda adalah ....","o":["membuat kesepakatan dengan orang tua jika terbukti hasil belajar peserta didik tidak baik, Anda akan membantu untuk menyalurkan aspirasi mereka","menjelaskan kepada orangtua bahwa model belajar ini lebih efektif jika dibandingkan dengan model belajar yang lebih konvensional","mendukung dengan maksimal model belajar ini karena model belajar ini terbukti dapat meningkatkan capaian pembelajaran peserta didik","berdiskusi dengan orang tua peserta didik mengenai efektivitas model belajar ini dan meminta perspektif mereka dari berbagai macam sudut pandang","meminta maaf kepada orang tua atas ketidaknyamanan yang dirasakan peserta didik sehingga menyebabkan kebingungan berkelanjutan bagi peserta didik"],"k":"D","g":"D","r":null},
+{"n":32,"q":"Saat Anda mengajar di kelas, tiba giliran seorang peserta didik mempresentasikan hasil tugas kelompok. Namun, peserta didik tersebut menolak dengan alasan malu dan takut salah, sehingga menghambat kelancaran presentasi kelompoknya. Jika hal ini dibiarkan, bisa mengganggu suasana pembelajaran dan perkembangan kepercayaan diri peserta didik. Apa yang akan Anda lakukan?","o":["Mengevaluasi kembali cara memberikan umpan balik, agar suasana kelas mendukung keberanian berbicara di depan umum.","Memberikan bimbingan dan dukungan secara khusus agar peserta didik merasa lebih percaya diri untuk tampil dan berpendapat.","Memahami karakter dan potensi peserta didik untuk merancang aktivitas pembelajaran yang dapat meningkatkan rasa percaya diri.","Memberikan nasihat dan dorongan agar peserta didik berani untuk mencoba mengungkapkan pendapatnya di depan kelas.","Mendorong peserta didik untuk mengamati dan meniru cara teman-temannya yang percaya diri saat berbicara di depan kelas."],"k":"B","g":"D","r":"Sekadar nasihat dan dorongan umum kurang konkret; yang lebih efektif adalah bimbingan dan dukungan khusus agar peserta didik benar-benar merasa percaya diri untuk tampil."},
+{"n":33,"q":"Anda mengikuti pelatihan mengenai metode ajar baru yang dapat diterapkan pada peserta didik di kelas Anda. Namun, setelah Anda mencoba mempelajarinya lebih dalam, metode tersebut belum bisa diterapkan untuk saat ini. Peserta didik selama ini membutuhkan waktu untuk bisa mengikuti metode pembelajaran baru yang Anda Berikan. Bagaimana Anda merespon situasi ini?","o":["Tetap memulai penerapan metode ajar baru karena saya yakin seiring berjalannya waktu, peserta didik akan terbiasa dengan sistemnya.","Tetap memulai penerapan metode ajar tersebut dengan mengombinasikan dengan metode ajar sebelumnya.","Berkonsultasi dengan guru lainnya sebagai bahan pertimbangan untuk menerapkan metode ajar tersebut.","Menunda penerapan metode tersebut sambil mempersiapkan peserta didik agar bisa menerima metode ajar baru.","Mencoba mempelajari lebih dalam mengenai metode tersebut sejauh mana efektivitasnya untuk kelas saya."],"k":"D","g":"C","r":"Metode dinyatakan belum bisa diterapkan saat ini karena kesiapan peserta didik, sehingga yang paling tepat adalah menunda penerapan sambil mempersiapkan mereka, bukan sekadar berkonsultasi."},
+{"n":34,"q":"Salah satu kelas yang Anda ampu sangat kesulitan untuk memahami materi. Hal ini terbukti dengan hasil asesmen sumatif akhir semester yang jauh lebih rendah dari kelas lain. Namun, berbagai program telah dilakukan oleh sekolah sebagai upaya untuk menumbuhkan minat peserta didik terhadap mata pelajaran ini, tetapi selalu gagal. Sebagai guru di kelas tersebut, apa yang akan Anda lakukan?","o":["Mengusulkan program baru kepada pihak sekolah yang lebih menarik dan modern bagi peserta didik agar minat peserta didik tumbuh kembali.","Mendiskusikan hal ini dengan pihak kepala sekolah dan guru-guru agar hal ini menjadi perhatian utama bagi sekolah untuk melaksanakan program baru yang sesuai dengan rencana sekolah.","Mengelompokkan peserta didik dengan kemampuan cukup dan kurang agar proses pembelajaran bisa lebih terfokus.","Menjadikan kejadian nyata di sekitar sebagai bahan materi dalam kelas agar peserta didik lebih memahami konsep materi.","Memberikan pelajaran tambahan bagi mereka yang masih memiliki nilai di bawah rata-rata sebagai upaya untuk mengejar ketertinggalan."],"k":"D","g":"C","r":"Pengelompokan berdasarkan kemampuan berisiko melabeli peserta didik; akar masalahnya adalah pemahaman materi, sehingga mengaitkan materi dengan kejadian nyata di sekitar lebih tepat."},
+{"n":35,"q":"Anda mengajar sebuah kelas yang di dalamnya terdapat b[tertutup popup \"Sisa waktu\"]erkebutuhan khusus dengan berbagai tingkat kemampuan. Anda memiliki peserta didik yang lebih cepat dalam menyerap materi, sementara yang lain lebih memerlukan lebih banyak waktu dan perhatian ekstra. Anda memiliki waktu yang terbatas dalam memberikan dukungan tambahan. Bagaimana Anda merancang pembelajaran untuk dapat memenuhi kebutuhan peserta didik beragam tersebut?","o":["Membedakan penugasan dan standar penilaian yang disesuaikan dengan klasifikasi kebutuhan maupun kemampuan peserta didik.","Mendorong peserta didik yang memiliki kemampuan menyerap materi dengan cepat untuk membantu peserta didik yang memiliki kemampuan kurang.","Fokus mengajar pada peserta didik yang memiliki daya serap lebih lambat sehingga semua peserta didik dapat mengikuti pembelajaran dengan optimal.","Memfasilitasi orang tua dengan materi pembelajaran yang ada sehingga para peserta didik dapat meningkatkan kemampuannya di rumah.","Mendiskusikan hal ini dengan guru yang memberikan pembelajaran pada peserta didik berkebutuhan khusus untuk menemukan metode belajar yang tepat."],"k":"A","g":"B","r":"Mendorong peserta didik cepat membantu yang lambat hanyalah teknik bantu, bukan rancangan pembelajaran; standar profesional untuk kelas beragam adalah diferensiasi penugasan dan penilaian sesuai kemampuan."},
+{"n":36,"q":"Ujian akhir semester baru saja selesai dilaksanakan. Namun, ada peserta didik Anda yang tidak mengikuti ujian akhir semester karena harus mengikuti kompetisi olahraga voli tingkat nasional mewakili provinsi. Ia tidak bisa melakukan ujian susulan karena waktu kompetisinya yang cukup lama. Bagaimana Anda memberikan penilaian terhadap peserta didik tersebut?","o":["Memberikan nilai sesuai dengan proses pembelajaran di kelas dan menambahkan catatan prestasinya.","Memberikan nilai tambahan atas prestasi peserta didik karena telah mewakili provinsi di kompetisi nasional.","Mengonversi penilaian dengan mempertimbangkan nilai formatif dan sumatifnya serta prestasi peserta didik.","Memberikan pertimbangan khusus untuk penilaian peserta didik dengan mempertimbangkan pendapat guru lain.","Menggantikan penilaian peserta didik dengan kombinasi nilai sumatif dan formatif yang didapatkan sebelumnya."],"k":"E","g":"E","r":null},
+{"n":37,"q":"Mayoritas peserta didik di kelas Anda sangat aktif untuk menjawab pertanyaan dan memberikan respons di setiap diskusi yang dilakukan. Namun, terdapat beberapa peserta didik yang sangat pasif bahkan kesulitan dalam hal komunikasi. Beberapa peserta didik ini terlihat kesulitan dalam menyampaikan pendapat, bahkan terlihat kebingungan ketika ditunjuk untuk berbicara. Apa yang Anda lakukan?","o":["Memberikan asesmen kepada peserta didik untuk mengetahui tingkat kemampuan bahasa peserta didik sebagai pertimbangan strategi pembelajaran.","Membentuk kelompok diskusi yang beranggotakan peserta didik dengan berbagai karakter untuk mempresentasikan hasil diskusi.","Menjalankan pembelajaran seperti biasa karena Anda yakin lambat laun beberapa peserta didik tersebut akan terpantik untuk ikut aktif dalam pembelajaran.","Lebih memfokuskan pembelajaran kepada beberapa peserta didik tersebut agar mereka lebih terbiasa untuk berkomunikasi dan aktif di dalam kelas seperti peserta didik lain.","Meminta peserta didik yang aktif untuk lebih mengajak beberapa peserta didik yang kesulitan komunikasi tersebut agar terjadi pemerataan kemampuan komunikasi."],"k":"B","g":"B","r":null},
+{"n":38,"q":"Sebagai guru, Anda meminta peserta didik untuk menyusun video yang menarik dalam pembelajaran literasi dan numerasi. Namun, peserta didik kesulitan dalam menyiapkannya sehingga waktu untuk menyusun video pembelajaran cukup lama dan menghambat waktu pembelajaran lainnya. Tindakan Anda adalah ....","o":["ikut serta dengan peserta didik dalam menyusun video demi mempercepat pembuatan","menunda penyusunan video sampai materi pembelajaran lainnya selesai","meminta peserta didik untuk lebih bersemangat karena tugas ini sangat bermanfaat","memperhitungkan kembali ketepatan metode pembelajaran ini agar lebih efektif","memberikan keringanan penyusunan video agar tidak menghambat pembelajaran lain"],"k":"D","g":"D","r":null},
+{"n":39,"q":"Dalam organisasi profesi yang Anda ikuti, peluang bagi para guru untuk menulis di artikel mengenai pendidikan yang diterbitkan tahunan sedang dibuka. Di waktu bersamaan, tahun ini Anda cukup berhasil dalam menerapkan metode pembelajaran baru yang belum banyak dipakai oleh para guru. Namun, para guru justru menganggap bahwa metode ini terlalu rumit jika harus diterapkan di Indonesia dengan keterbatasan sumber daya manusia yang ada. Sikap Anda adalah ....","o":["mencari referensi pendukung yang relevan dan memastikan dengan penuh bahwa metode ini memang bisa diterapkan di Indonesia seutuhnya","berpartisipasi menulis pada artikel tersebut mengenai hal-hal umum yang sudah pasti diterima oleh sebagian besar guru maupun khalayak secara umum","melakukan uji coba kembali ke kelas tersebut untuk memastikan bahwa metode ini benar-benar efektif dan layak untuk dijadikan artikel tahun depan","mempertimbangkan keikutsertaan Anda dalam penulisan artikel karena khawatir akan menimbulkan berbagai pro dan kontra","menuliskan keberhasilan metode belajar tersebut dengan berbagai kelebihan dan kekurangannya dalam artikel tahunan"],"k":"E","g":"E","r":null},
+{"n":40,"q":"Anda sebagai seorang guru diminta untuk memimpin piket di sekolah. Saat piket dilakukan, ada peserta didik yang datang terlambat di saat jam pelajaran pertama telah dimulai. Ketika Anda melihat catatan keterlambatan, siswa tersebut sudah beberapa kali terlambat. Apa yang Anda lakukan untuk mengatasi masalah tersebut?","o":["Menanyakan alasan peserta didik datang terlambat dan memberikan sanksi sesuai dengan aturan sekolah agar peserta didik tidak lagi datang terlambat.","Mencari tahu alasan peserta didik datang terlambat, memberikan sanksi sesuai aturan sekolah, dan mengomunikasikan hal tersebut kepada orang tua peserta didik.","Menanyakan alasan peserta didik datang terlambat dan menasihati agar kedepannya peserta didik tidak lagi datang terlambat ke sekolah.","Menanyakan alasan peserta didik datang terlambat kemudian mengomunikasikan hal tersebut dengan orang tua peserta didik sebagai bentuk kolaborasi sekolah dan orang tua.","Menyerahkan peserta didik kepada guru BK untuk memastikan alasan datang terlambat dan dapat mencari solusi terbaik untuk mengatasi masalah tersebut."],"k":"D","g":"D","r":null},
+{"n":41,"q":"Anda sebagai guru diminta untuk menyampaikan presentasi materi ajar dalam rapat kelompok bidang sesama guru yang sama. Seorang rekan guru memberikan umpan balik bahwa Anda kurang memberikan contoh konkret dalam materi ajar tersebut. Apa yang akan Anda lakukan merespons situasi ini?","o":["Menerima umpan balik dengan menambahkan contoh konkret dan membuatnya lebih informatif sesuai masukan dari rekan guru.","Memberikan alasan logis mengapa contoh konkret bukan menjadi hal yang esensial dalam materi yang diajarkan di dalam kelas.","Menerima umpan balik sambil memberikan pemahaman bahwa setiap guru sangat mungkin memiliki metode ajar yang berbeda-beda.","Memberikan argumen kepada rekan guru tersebut serta mengajukan contoh konkret yang dimaksud dalam materi ajar yang dipresentasikan.","Mengakui bahwa memasukan beragam contoh konkret dalam materi ajar itu penting dan berusaha meningkatkan kualitas presentasi di masa mendatang."],"k":"A","g":"A","r":null},
+{"n":42,"q":"Akhir-akhir ini seorang peserta didik menunjukkan perubahan perilaku menjadi lebih murung dan badannya memar-memar. Setelah Anda telusuri ternyata ia menjadi korban kekerasan fisik dan psikologis dari orang tuanya di rumah. Apa yang akan Anda lakukan?","o":["Memberikan kesempatan kepada peserta didik untuk mengikuti konseling sekolah dan mendampingi prosesnya.","Mengajak peserta didik berbicara secara pribadi untuk memberikan dukungan dan mencari tahu kebutuhannya.","Memantau kondisi peserta didik secara rutin dan berkoordinasi dengan guru BK tanpa melibatkan pihak luar.","Meminta peserta didik untuk bersabar dan berusaha menyelesaikan masalah keluarganya secara mandiri.","Segera melaporkan kondisi peserta didik kepada guru BK atau pihak sekolah agar dapat ditangani secara profesional."],"k":"E","g":"E","r":null},
+{"n":43,"q":"Anda telah mengajar sesuai modul ajar, termasuk melaksanakan asesmen formatif dan sumatif. Namun, beberapa peserta didik tampak kesulitan memahami materi dan tertinggal dalam pembelajaran. Apa yang akan Anda lakukan untuk membantu peserta didik tersebut?","o":["Menyesuaikan strategi pembelajaran di kelas agar peserta didik yang kesulitan tetap dapat mengikuti materi dengan baik.","Meninjau modul ajar dan metode asesmen yang digunakan untuk memastikan kesesuaiannya dengan kebutuhan peserta didik.","Memberikan dorongan dan motivasi kepada peserta didik agar mereka lebih semangat mengikuti pembelajaran.","Mengembangkan bahan ajar pendamping atau latihan tambahan agar peserta didik bisa belajar secara mandiri di luar kelas.","Menggunakan metode pembelajaran yang variatif untuk menjaga minat dan keterlibatan peserta didik dalam proses belajar."],"k":"A","g":"A","r":null},
+{"n":44,"q":"Anda menugaskan peserta didik untuk merangkum materi dan membuat catatan. Namun, setelah melakukan ujian tengah semester ternyata banyak peserta didik mendapatkan nilai di bawah rata-rata. Berdasarkan hasil observasi Anda, ternyata peserta didik cenderung mencatat tanpa memahami apa yang mereka catat. Apa yang akan Anda lakukan untuk mengatasi hal tersebut?","o":["Mempertimbangkan pemberian pertanyaan terkait materi untuk menguji pemahaman peserta didik.","Memberikan waktu kepada peserta didik untuk mereviu hasil catatan yang telah mereka buat.","Meninjau kembali instruksi yang diberikan dan mempertimbangkan untuk mengembangkan instruksinya.","Meminta peserta didik untuk berdiskusi dengan teman terkait materi yang diajarkan dan saling bertanya. .","Menjelaskan ulang kepada peserta didik terkait materi yang mereka catat agar lebih mudah dipahami."],"k":"D","g":"D","r":null},
+{"n":45,"q":"Seorang peserta didik di kelas Anda adalah anak berkebutuhan khusus. Ia sering kurang fokus dan sulit memahami materi pembelajaran sehingga membuat peserta didik lainnya menunggu. Hal tersebut memperlambat kemajuan materi pembelajaran dibandingkan kelas lainnya. Tindakan Anda adalah ....","o":["mengikuti panduan pembelajaran yang ada sesuai dengan materi pada pembelajaran kelas lainnya demi kesetaraan pembelajaran","berdiskusi dengan rekan kerja dan pimpinan yang lebih ahli mengenai metode pembelajaran yang sesuai kondisi peserta didik","mengikuti pelatihan untuk mencari tahu kondisi siswa berkebutuhan khusus agar bisa memberikan pengajaran yang tepat","mengubah rencana pembelajaran agar terjadi saling bantu antara satu peserta didik dengan peserta didik lainnya","menemani siswa berkebutuhan khusus dengan fokus karena peserta didik lain dapat mudah mengikuti pembelajaran"],"k":"C","g":"C","r":null},
+{"n":46,"q":"Anda tergabung dalam proyek kolaborasi lintas mata pelajaran di sekolah Anda. Namun, ternyata mata pelajaran yang Anda ampu kurang cocok untuk dimasukkan ke dalam kolaborasi ini. Pendekatan juga sulit dilakukan dalam kolaborasi ini. Tindakan Anda adalah ....","o":["mengusulkan untuk meninjau kembali keikutsertaan mata pelajaran Anda dalam kolaborasi tersebut dan tetap menjadi mata pelajaran yang berdiri sendiri","tetap mendukung dengan maksimal kolaborasi interdisiplin ini walaupun tidak bisa bergabung di dalamnya karena ketidaksesuaian mata pelajaran yang Anda ampu","memberikan bantuan dalam bentuk pendampingan kepada peserta didik ketika pembelajaran walaupun mata pelajaran Anda tidak dapat terlibat","mencari berbagai referensi ilmiah pendekatan untuk mengupayakan masuknya mata pelajaran yang Anda ampu ke dalam kolaborasi tersebut","membahas hal ini dengan kepala sekolah untuk menemukan solusi yang paling tepat atas permasalahan yang terjadi atas program ini"],"k":"B","g":"B","r":null},
+{"n":47,"q":"Komite sekolah meminta untuk lebih banyak latihan pengerjaan soal-soal akademis sebagai persiapan masuk ke jenjang pendidikan selanjutnya. Padahal, peserta didik lebih senang dengan pembelajaran interaktif yang melibatkan kerja sama dan kegiatan aktif untuk memahami pembelajaran. Apa yang Anda lakukan pada situasi tersebut?","o":["Mengkaji usulan dari kedua pihak dalam membuat metode pembelajaran sebagai hal penting bagi peserta didik.","Menyesuaikan dengan capaian pembelajaran yang sudah ada dan jelas sesuai kebutuhan tingkat pendidikannya.","Menceritakan kondisi ini pada peserta didik agar mereka juga lebih bersiap-siap dengan jenjang pendidikan selanjutnya.","Menceritakan kondisi ini pada komite sekolah agar mereka setuju pembelajaran berdasarkan minat peserta didik.","Meminta kepala sekolah sebagai pihak yang berwenang untuk menjembatani keinginan peserta didik dan juga komite sekolah."],"k":"A","g":"A","r":null},
+{"n":48,"q":"Saat membahas tentang toleransi dan persatuan dalam konteks Pancasila di kelas, seorang peserta didik mengungkapkan pendapat yang kontroversial dan bertentangan dengan nilai-nilai Pancasila. Apa yang akan Anda lakukan menghadapi situasi ini?","o":["Memberi berbagai macam bacaan tentang nilai-nilai Pancasila untuk peserta didik yang bersangkutan.","Mendiskusikan secara khusus pendapat yang kontroversial kepada peserta didik lainnya secara terbuka di kelas.","Mempelajari setiap pendapat yang dikemukakan peserta didik termasuk pendapat yang kontroversial.","Memberi ruang kepada peserta didik untuk bebas berpendapat sesuai dengan prinsip dalam proses pembelajaran.","Memberi dukungan kepada peserta didik yang telah menerapkan toleransi dan persatuan dalam konteks Pancasila."],"k":"D","g":"D","r":null},
+{"n":49,"q":"Kelas yang Anda ampu saat ini terdiri atas peserta didik yang memiliki berbagai latar belakang budaya dan kepercayaan agama. Dalam salah satu pembelajaran, Anda membuka diskusi mengenai budaya dan agama di dunia termasuk berbagi upacara keagamaan yang ada di dalamnya. Selama diskusi, ada beberapa peserta didik yang cukup dominan dan cenderung merendahkan ritual keagamaan tertentu. Tindakan Anda adalah ....","o":["memantau dan tetap membiarkan diskusi berjalan sebagaimana mestinya untuk melihat keaktifan masing-masing peserta didik","menegur peserta didik tersebut dan memberi penjelasan bahwa perbedaan ini sangat wajar terjadi sehingga kita harus menoleransinya","merasa bahwa metode diskusi mungkin kurang cocok untuk tema materi ini karena kelas Anda terdiri dari peserta didik yang memiliki berbagai latar belakang budaya","merombak kembali kelompok diskusi agar tidak memunculkan konflik antarpeserta diskusi dan proses pembelajaran berjalan sebagaimana seharusnya.","meninjau kembali metode belajar dengan pendekatan diskusi dalam proses belajar ini dan menekankan toleransi antar budaya dalam metode"],"k":"E","g":"E","r":null},
+{"n":50,"q":"Anda sedang dalam perjalanan pulang dari sekolah. Di dekat kawasan yang dikenal rawan tawuran, Anda melihat sekelompok peserta didik dari sekolah Anda sedang beradu argumen dengan sekelompok siswa dari lain yang terkenal sering terlibat tawuran. Suasana semakin memanas dengan nada suara yang tinggi dan gerakan yang mengancam, yang dikhawatirkan dapat memicu bentrokan fisik. Apa yang akan Anda lakukan?","o":["Menghubungi petugas keamanan sekitar untuk segera turun tangan dan mengatasi potensi tawuran tersebut.","Mengajak peserta didik dari kedua sekolah untuk berdialog dan mencari solusi bersama agar ketegangan mereda.","Melanjutkan perjalanan sambil tetap waspada dan siap mengambil tindakan jika situasi semakin memburuk.","Segera mendekati dan mencoba meredakan ketegangan agar argumen tidak berlanjut menjadi kekerasan.","Meminta peserta didik sekolah Anda segera meninggalkan lokasi dan pulang bersama Anda agar terhindar dari konflik."],"k":"D","g":"B","r":"Mengajak dialog kedua sekolah (B) tidak realistis saat situasi memanas dan berisiko; tindakan paling tepat adalah segera mendekati dan meredakan ketegangan (D) sebelum terjadi kekerasan."},
+{"n":51,"q":"Ketika mengajar di kelas, hampir seluruh peserta didik meminta Anda untuk mengajarkan kembali materi pembelajaran sebelumnya karena mereka merasa perlu memperdalam pemahaman. Namun, Anda mendapat teguran dari tim kurikulum karena kelas tersebut menjadi tertinggal jauh dari jadwal yang telah ditetapkan. Keterlambatan ini dikhawatirkan akan berdampak pada kesiapan peserta didik menghadapi asesmen sumatif. Apa yang akan Anda lakukan?","o":["Meninjau tingkat penguasaan materi peserta didik dan menyesuaikannya dengan kurikulum agar pembelajaran tetap efektif dan tepat sasaran.","Mengubah metode pembelajaran agar lebih menarik dan kontekstual supaya peserta didik tertarik mempelajari materi baru.","Menunda sementara pengulangan materi sebelumnya dan mengarahkan peserta didik agar fokus pada jadwal pembelajaran saat ini.","Mengutamakan keinginan peserta didik dengan tetap mengulang materi sebelumnya, sambil mencari solusi untuk mengejar ketertinggalan.","Melanjutkan pembelajaran sesuai jadwal kurikulum sambil mencatat kebutuhan peserta didik untuk evaluasi pengembangan selanjutnya."],"k":"A","g":"A","r":null},
+{"n":52,"q":"Saat menjelaskan suatu materi baru di dalam kelas, Anda sebagai guru menerima usulan dari peserta didik yang menyatakan bahwa materi yang disampaikan terlalu cepat, dan ia membutuhkan lebih banyak waktu untuk memahaminya. Apa yang Anda lakukan menghadapi situasi ini?","o":["Menjelaskan beberapa bagian yang sulit dengan tempo lebih lambat, walaupun Anda sadar tidak semua peserta didik akan puas.","Mengakui peserta didik memiliki kecepatan pemahaman yang berbeda sehingga usulan tersebut perlu Anda terapkan di masa mendatang.","Memberitahu peserta didik bahwa Anda akan melambatkan tempo penjelasan dan memberi contoh untuk membantu pemahaman.","Meminta peserta didik memahami dengan seksama dan mengikuti dengan baik karena Anda harus menyelesaikan materi tepat waktu.","Merasa perlu melanjutkan pembahasan lebih dalam di luar pelajaran meskipun hanya satu dari seluruh peserta didik yang merasa kesulitan."],"k":"A","g":"E","r":"Memindahkan pembahasan ke luar jam pelajaran hanya untuk satu siswa (E) membebani dan tidak memperbaiki proses di kelas; yang tepat adalah melambatkan tempo pada bagian sulit di kelas (A)."},
+{"n":53,"q":"Anda telah menyelesaikan serangkaian materi di kelas yang Anda ampu. Anda merasa bahwa capaian pembelajaran sebelumnya belum maksimal seperti yang Anda harapkan. Sedangkan, saat ini Anda harus memasuki materi baru untuk disampaikan kepada peserta didik. Bagaimana langkah yang Anda tempuh untuk memasuki materi baru ini?","o":["Mengurangi intensitas belajar di kelas dan memperbanyak studi lapangan agar peserta didik dapat memahami konsep materi tersebut.","Meninjau ulang capaian pembelajaran peserta didik disertai remedial untuk menyusun rencana pembelajaran fleksibel sesuai kesiapan peserta didik.","Mempersiapkan bahan materi baru semaksimal mungkin dengan tetap mempertimbangkan tingkat pemahaman peserta didik pada tahap sebelumnya.","Melakukan pendampingan terlebih dahulu kepada peserta didik yang belum mendapatkan hasil pembelajaran maksimal.","Mencoba menggunakan metode belajar sebelumnya untuk memastikan efektivitas metode tersebut dengan sedikit modifikasi."],"k":"B","g":"C","r":"Capaian yang belum maksimal harus ditinjau ulang disertai remedial dan rencana fleksibel sesuai kesiapan siswa (B) sebelum masuk materi baru, bukan sekadar menyiapkan materi baru (C)."},
+{"n":54,"q":"Anda menghadapi peserta didik yang bertindak tidak sopan ketika ditegur. Ini adalah pelanggaran kali ketiga yang ia lakukan. Peserta didik tersebut mengucapkan kata-kata kasar yang cukup menyinggung diri Anda. Selain itu, Anda sudah pernah menegurnya beberapa kali tapi tidak pernah diterima. Apa yang akan Anda lakukan untuk menghadapi situasi ini?","o":["Berdiskusi dengan pihak sekolah untuk memberikan sanksi pada peserta didik tersebut sesuai dengan tindakan yang dilakukan.","Bekerja sama dengan guru lain untuk bisa mengatasi situasi yang ada sehingga tidak terjadi masalah yang lebih besar.","Mencoba menenangkan peserta didik tersebut agar bisa berhenti melontarkan kata-kata tidak sopan dan mengikuti aturan.","Menelaah permasalahan yang terjadi pada peserta didik sebagai dasar untuk mengambil tindakan selanjutnya.","Menghubungi orang tua peserta didik untuk mendiskusikan lebih lanjut mengenai tindakan yang dilakukan oleh peserta didik."],"k":"D","g":"D","r":null},
+{"n":55,"q":"Anda sedang dalam forum diskusi bersama rekan sejawat. Dalam forum tersebut, rekan sejawat Anda mengkritik gaya mengajar Anda di depan rekan-rekan yang lain. Di sisi lain, praktik gaya belajar Anda ini terbukti mampu meningkatkan capaian pembelajaran peserta didik pada berbagai literatur. Apa reaksi Anda terhadap hal tersebut?","o":["Merespons kritikan tersebut dengan berbagai landasan ilmiah agar bisa menjadi dasar kuat bahwa gaya belajar Anda berpeluang untuk sukses.","Mendorong diskusi yang konstruktif dengan rekan sejawat tersebut untuk mencari solusi yang terbaik bagi peserta didik.","Mengembalikan kepada forum dan menampung pendapat lain agar bisa menjadi masukan bagi diri Anda dalam strategi pembelajaran.","Meminta rekan Anda untuk memberikan landasan kuat atas kritikan tersebut agar bisa didiskusikan bersama efektivitas gaya belajar ini.","Menerima kritikan tersebut karena setiap anggota diskusi memiliki hak yang sama untuk memberikan kritikan satu sama lain."],"k":"B","g":"B","r":null},
+{"n":56,"q":"Anda hendak menjelaskan manfaat dan pentingnya berolahraga. Biasanya, hal-hal yang berkaitan dengan olahraga dapat dipraktikkan secara langsung. Kali ini, materi tersebut dilakukan secara daring yang membuat fokus dan pemahaman peserta didik menurun. Anda khawatir materi ini tidak tersampaikan dengan baik. Sebagai guru, apa yang akan Anda lakukan?","o":["Mempertimbangkan penggunaan video pembelajaran yang menarik dan terkini untuk membuat peserta didik lebih tertarik dan memahami materi.","Menjelaskan manfaat dan pentingnya olahraga kepada peserta didik dengan menggunakan media virtual yang menarik.","Memberikan tugas peserta didik untuk mencari manfaat dan pentingnya olahraga di internet kemudian mempresentasikan hasil pencariannya.","Mengilustrasikan materi dengan sebuah cerita dalam bentuk video agar peserta didik dapat mudah memahami materinya.","Memberikan tugas kelompok untuk mencari contoh dalam bentuk visual mengenai jenis olahraga dan manfaat yang bisa diperoleh."],"k":"A","g":"A","r":null},
+{"n":57,"q":"Pembelajaran berbasis proyek Anda terapkan di kelas yang Anda ampu. Anda akan menugaskan setiap kelompok untuk membuat sebuah proyek besar dan mempresentasikannya di depan kelas. Anda sangat memahami kondisi peserta didik di kelas memiliki beragam tingkat kemampuan dan minat dalam mata pelajaran. Bagaimana Anda akan menentukan kelompok perencanaan proyek ini?","o":["Menganalisis berdasarkan hasil tes sebelumnya untuk mengidentifikasi kemampuan dan minat peserta didik untuk pembentukan komposisi kelompok.","Mengacak kelompok secara random sehingga setiap kelompok terdiri atas peserta didik dengan tingkat kemampuan yang beragam agar variasi terlihat dalam kelompok.","Bertanya kepada setiap peserta didik untuk mengetahui preferensi belajar mereka dan membangun kelompok berdasarkan kombinasi yang beragam dari tingkat kemampuan.","Membuat kelompok berdasarkan urutan abjad untuk memudahkan Saya melakukan penilaian baik individu maupun kelompok ketika proses presentasi mereka lakukan.","Meminta peserta didik untuk menentukan kelompok secara mandiri sehingga dapat menyesuaikan dengan siapa mereka akan bekerja sama dalam kelompok."],"k":"C","g":"A","r":"Karena kemampuan dan minat sama-sama beragam, bertanya langsung tentang preferensi belajar lalu membangun kelompok beragam (C) lebih akurat daripada hanya mengandalkan hasil tes (A)."},
+{"n":58,"q":"Anda memiliki peserta didik yang tergolong usil di kelas dan tak jarang membuat Anda jengkel. Ibu peserta didik tersebut memberitahu Anda bahwa ia sedang dalam proses perceraian dengan suaminya. Anda pun menjadi lebih memahami peserta didik tersebut dibandingkan dengan guru-guru lain. Bagaimana respons Anda dalam menghadapi situasi ini?","o":["Melakukan pendekatan pribadi kepada peserta didik tersebut dengan menawarkan alternatif tambahan pembelajaran yang ia minati.","Meminta bantuan guru BK untuk memberi pengertian pada peserta didik tersebut tentang mengapa orangtuanya bercerai dan harus belajar giat.","Mendiskusikan informasi yang saya ketahui dengan orang tua peserta didik lain agar peserta didik lain tidak merasa terganggu saat proses pembelajaran.","Menyarankan kepada orang tua peserta didik tersebut untuk membawa anaknya ke psikolog dengan harapan karakternya membaik.","Melakukan pendekatan pribadi kepada peserta didik untuk bersama-sama membahas sikap dan perilakunya selama ini."],"k":"E","g":"B","r":"Meminta guru BK menjelaskan perceraian orang tua kepada anak (B) tidak pantas; yang tepat adalah pendekatan pribadi guru untuk membahas sikap dan perilakunya (E)."},
+{"n":59,"q":"Anda menghadiri pertemuan dengan orang tua/wali peserta didik yang ingin mendapatkan pemahaman lebih baik tentang perkembangan dan capaian belajar anak mereka. Namun, beberapa orang tua/wali peserta didik kesulitan memahami laporan prestasi akademik serta perkembangan sosial dan emosional anaknya. Apa yang akan Anda lakukan menghadapi situasi ini","o":["Mengomunikasikan laporan yang sudah ada terkait prestasi akademik serta perkembangan sosial dan emosional melalui contoh konkret kepada orang tua/wali.","Berdiskusi dengan guru lain mengenai format baku prestasi akademik dan perkembangan sosial sebelum diinformasikan ke orang tua/wali murid.","Mempelajari berbagai teknik komunikasi yang dapat diimplementasikan kepada orang tua/wali murid tentang capaian belajar anak mereka.","Meninjau kembali langkah penyampaian laporan capaian belajar yang meliputi prestasi akademik serta perkembangan sosial dan emosional peserta didik.","Memberikan kesempatan bagi orang tua/wali peserta didik untuk bertanya lebih lanjut mengenai laporan prestasi akademik di luar sesi pertemuan."],"k":"A","g":"A","r":null},
+{"n":60,"q":"Anda menugasi peserta didik untuk membuat proyek kelompok selama satu bulan sebagai penilaian ujian akhir semester. Pada saat pelaksanaan, banyak peserta didik yang mengeluh kekurangan waktu untuk menyelesaikan projek tersebut. Sebagai guru, apa yang akan Anda lakukan untuk menangani masalah tersebut?","o":["Memahami kendala yang dialami dan memberikan keringanan waktu penyelesaiannya.","Membantu peserta didik untuk menyelesaikan projek tepat waktu dengan sepenuh hati.","Memberikan keringanan kepada peserta didik sesuai dengan kemampuan dan kondisinya.","Mengajak peserta didik untuk refleksi terkait ketidaksesuaian dengan waktu yang diberikan.","Mendorong peserta didik tepat waktu agar tidak menjadi kebiasaan buruk menunda pekerjaan."],"k":"A","g":"D","r":"Ketika banyak siswa mengeluh kekurangan waktu, yang tepat adalah memahami kendala dan memberi keringanan waktu (A), bukan meminta siswa merefleksikan diri (D)."},
+{"n":61,"q":"Dalam proses pembelajaran, seorang peserta didik datang kepada Anda dengan emosi yang tinggi dan mengeluh kesulitan terhadap tugas yang Anda berikan. Apa yang akan Anda lakukan menghadapi situasi ini?","o":["Memberi kesempatan peserta didik untuk mengeluarkan emosinya sampai ia merasa tenang untuk diajak berbicara.","Mendengarkan keluhan secara langsung sambil menenangkan dan mencari solusi bersama di ruang kelas.","Meminta peserta didik tersebut kembali ke kursinya dan memberikan pandangan kepada peserta didik tersebut.","Mengingatkan peserta didik untuk memberikan usaha lebih dalam menyelesaikan tugasnya meskipun sulit dikerjakan.","Meluangkan waktu khusus untuk berdiskusi lebih lanjut mengenai kesulitan peserta didik yang mengalami hal yang sama."],"k":"B","g":"B","r":null},
+{"n":62,"q":"Anda sebagai guru hendak merancang modul ajar berdasarkan alur tujuan pembelajaran. Dalam penyusunan modul ajar, Anda ingin menyesuaikan dengan kondisi dan kemampuan awal yang dimiliki oleh peserta didik Anda, tetapi Anda belum mengetahui kondisi awal mereka. Agar Anda dapat menyusun modul ajar tersebut, apa yang Anda lakukan?","o":["Membuat modul ajar dengan menyesuaikan kondisi peserta didik berdasarkan nilai mereka di semester sebelumnya.","Berdiskusi dengan guru yang mengajar pada semester sebelumnya dan membuat modul ajar berdasarkan hasil diskusi tersebut.","Membuat modul ajar baru yang telah disesuaikan dengan kurikulum berdasarkan pengalaman dari tahun sebelumnya.","Menggunakan modul ajar pada tahun sebelumnya dengan menyesuaikan materi berdasarkan perkembangan materi saat ini.","Membuat modul ajar bersama tim guru yang mengampu mata pelajaran yang sama berdasarkan hasil evaluasi pembelajaran."],"k":"B","g":"B","r":null},
+{"n":63,"q":"Setelah dilakukan kajian ulang, Anda mendapati adanya jarak capaian pembelajaran yang cukup jauh antarpeserta didik. Terdapat beberapa peserta didik yang mendapatkan capaian pembelajaran rendah pada beberapa aspek, tetapi ada juga peserta didik yang mendapatkan capaian pembelajaran sangat tinggi. Tindakan Anda adalah ....","o":["mengkaji ulang silabus yang telah disusun untuk membuat sebuah alur besar tujuan pembelajaran yang mudah dipahami peserta didik","memberikan pembahasan latihan soal yang berbeda-beda sesuai dengan materi yang masih kurang dipahami oleh peserta didik","mengulang penjelasan materi tersebut dengan metode diskusi interaktif untuk mengetahui tingkat pemahaman peserta","melakukan penilaian remedial beberapa peserta didik yang nilainya masih jauh di bawah rata-rata agar dapat mengejar ketertinggalan","meminta peserta didik dengan capaian pembelajaran tinggi untuk memberikan penjelasan kepada peserta didik lain dalam sebuah grup diskusi interaktif"],"k":"B","g":"C","r":"Kesenjangan capaian yang jauh membutuhkan diferensiasi berupa latihan soal berbeda sesuai materi yang belum dikuasai masing-masing (B), bukan mengulang penjelasan untuk semua siswa (C)."},
+{"n":64,"q":"Minat belajar peserta didik di kelas yang Anda ampu menurun. Terbukti bahwa hanya 25% peserta didik yang bisa mengerjakan tugas yang diberikan dengan maksimal. Proses pendampingan dengan orang tua sudah dicoba untuk dilakukan, tetapi masih tidak membuahkan hasil yang signifikan. Tindakan Anda adalah ....","o":["meninjau kembali proses pendampingan orang tua agar orang tua dapat mengoptimalkan proses pendampingan belajar peserta didik di rumah","mengusulkan program baru kepada bagian kurikulum sebagai sebuah inovasi baru yang menjadi upaya untuk meningkatkan kualitas belajar peserta didik","membuat kelompok belajar kecil antarpeserta didik agar peserta didik dengan minat belajar tinggi dapat menularkan semangatnya kepada peserta didik yang lain","melakukan pendampingan lebih intensif khusus dengan orangtua dari 25% peserta didik ini sebagai upaya meningkatkan minat belajar mereka mereka","mengurangi intensitas tugas yang diberikan kepada peserta didik agar tidak terbebani dengan banyaknya tugas yang mungkin harus dikerjakan"],"k":"C","g":"A","r":"Pendampingan orang tua sudah dicoba dan tidak membuahkan hasil, sehingga mengulanginya (A) kurang tepat; kelompok belajar kecil agar semangat menular antar siswa (C) adalah intervensi langsung di ranah guru."},
+{"n":65,"q":"Beberapa peserta didik di kelas yang Anda ampu susah memahami materi yang Anda berikan karena materi tersebut sangat kompleks. Hal ini terlihat dari hasil asesmen formatif yang menurun dari tahun lalu. Ternyata, penurunan hasil asesmen juga terjadi di mata pelajaran yang diampu oleh guru lain. Tindakan Anda adalah ....","o":["mendiskusikan masalah ini dengan kepala sekolah agar beliau mengetahui kondisi yang terjadi dan dapat memberikan masukan","menyederhanakan konsep materi agar lebih mudah dipahami oleh peserta didik yang Anda ampu sehingga pemahaman peserta didik bisa sama rata","melakukan klasifikasi kemampuan peserta didik bersama guru lain yang juga memberi pengajaran pada kelas tersebut","memberikan kesempatan kepada peserta didik untuk bertanya atau berdiskusi di luar jam pelajaran, jika memang diperlukan","memberikan jam tambahan kepada peserta didik agar peserta didik memiliki pemahaman yang menyeluruh"],"k":"C","g":"B","r":"Penurunan hasil terjadi di semua mata pelajaran sehingga ini masalah sistemik; klasifikasi kemampuan bersama guru lain (C) lebih tepat daripada sekadar menyederhanakan materi (B) yang menurunkan standar."},
+{"n":66,"q":"Anda akan mengadakan pertemuan dengan orang tua peserta didik untuk membahas refleksi pembelajaran selama satu semester terakhir. Beberapa peserta didik perlu perhatian lebih karena masih jauh dari capaian pembelajaran. Di sisi lain, orang tua beberapa peserta didik ini berasal dari daerah sehingga cukup kesulitan dalam berkomunikasi. Apa yang akan Anda lakukan?","o":["Memfasilitasi mereka dengan memberikan penjelasan menggunakan bahasa daerah agar bisa dipahami secara utuh.","Memberikan penjelasan menggunakan bahasa Indonesia karena bagaimanapun pertemuan ini adalah pertemuan formal.","Mengidentifikasi area-area yang perlu dikembangkan bersama para orang tua peserta didik menggunakan rencana tindakan.","Memberikan catatan capaian pembelajaran secara khusus kepada beberapa orang tua agar mereka lebih termotivasi.","Menyampaikan penjelasan yang disertai dengan visualisasi alur pembelajaran jika memang diperlukan."],"k":"A","g":"A","r":null},
+{"n":67,"q":"Setelah melakukan pembelajaran selama tiga pertemuan, Anda melihat hanya tiga orang peserta didik yang aktif di kelas dan hal tersebut membuat peserta didik lainnya menjadi lebih pasif. Setelah melakukan refleksi, Anda memutuskan untuk mengubah cara Anda mengajar agar lebih berfokus pada peserta didik sehingga peserta didik lain bisa lebih terlibat dalam proses pembelajaran. Adapun cara yang Anda lakukan adalah ....","o":["memberikan soal yang berbeda untuk masing-masing peserta didik sehingga masing-masing peserta didik dapat menyampaikan jawabannya","setelah penyampaian materi, peserta didik diberi kesempatan untuk berdiskusi bersama teman sebangkunya, kemudian menyampaikan hasil diskusi di depan kelas secara bergantian","memperbanyak sesi diskusi untuk memantik peserta didik lebih aktif dalam mengemukakan pendapatnya sehingga tidak hanya satu atau dua peserta didik saja yang aktif","mengelompokkan peserta didik dan membagi tema tugas yang berbeda-beda selanjutnya menjadwalkan kelompok untuk presentasi hasil tugasnya di setiap pertemuan","merencanakan pembelajaran berbasis projek sesuai dengan minat dan kebutuhan peserta didik untuk memantik keaktifan peserta didik dalam kelompoknya masing-masing"],"k":"B","g":"E","r":"Untuk melibatkan siswa yang pasif, diskusi berpasangan dengan giliran presentasi (B) menjamin partisipasi setiap siswa; proyek besar (E) butuh waktu lama dan tidak langsung mengatasi kepasifan."},
+{"n":68,"q":"Sekolah Anda berada dekat dengan kawasan pariwisata yang banyak dikunjungi turis asing. Anda sebagai guru melihat kondisi tersebut sebagai peluang yang baik untuk meningkatkan kemampuan berbahasa Inggris peserta didik Anda. Hal yang Anda lakukan adalah ....","o":["Anda mengembangkan pembelajaran tematik dengan mengangkat isu pariwisata lokal dalam materi Bahasa Inggris agar peserta didik lebih kontekstual dalam belajar.","Anda mengusulkan kerja sama antara sekolah dan pelaku pariwisata lokal agar peserta didik dapat mempraktikkan Bahasa Inggris melalui kunjungan atau kegiatan magang.","Anda menyusun lembar kerja tentang pariwisata lokal berbahasa Inggris dan menggunakannya dalam kegiatan membaca dan menulis di kelas secara mandiri.","Anda mengajak peserta didik untuk berinteraksi langsung dengan turis asing melalui kegiatan terencana seperti wawancara atau tur edukatif yang dipantau guru.","Anda memberikan tugas proyek kepada peserta didik untuk membuat video panduan wisata dalam Bahasa Inggris yang dapat dipublikasikan sebagai media latihan berbicara."],"k":"D","g":"A","r":"Peluang utama kedekatan dengan kawasan turis adalah interaksi langsung berbahasa Inggris melalui kegiatan terencana yang dipantau guru (D), lebih autentik daripada sekadar pembelajaran tematik di kelas (A)."}
+      ];
+
+      var CATEGORIES = [
+        { name: "Manajerial", from: 1, to: 24 },
+        { name: "Sosial Kultural", from: 25, to: 27 },
+        { name: "Teknis", from: 28, to: 68 }
+      ];
+      var LETTERS = ["A", "B", "C", "D", "E"];
+      var TOTAL = QUESTIONS.length;
+
+      var state = {
+        idx: 0,
+        answers: {},   // n -> huruf jawaban
+        flagged: {},   // n -> true
+        timerId: null,
+        endAt: 0,
+        timed: false,
+        minutes: 0,
+        started: false,
+        filterWrong: false
+      };
+
+      /* ---------- Penyimpanan lokal (progres & nilai terakhir) ---------- */
+      var LS_PROGRESS = "sjt-simulasi-progress-v1";
+      var LS_RESULT = "sjt-simulasi-hasil-v1";
+      function lsGet(key) {
+        try {
+          var raw = window.localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+      function lsSet(key, val) {
+        try { window.localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+      }
+      function lsDel(key) {
+        try { window.localStorage.removeItem(key); } catch (e) {}
+      }
+      function saveProgress() {
+        if (!state.started) return;
+        lsSet(LS_PROGRESS, {
+          answers: state.answers,
+          flagged: state.flagged,
+          idx: state.idx,
+          minutes: state.minutes,
+          timed: state.timed,
+          endAt: state.endAt
+        });
+      }
+      function loadProgress() { return lsGet(LS_PROGRESS); }
+      function loadResult() { return lsGet(LS_RESULT); }
+      function refreshSavedPanels() {
+        var p = loadProgress();
+        if (p && p.answers) {
+          var done = 0;
+          for (var k in p.answers) if (p.answers[k]) done++;
+          var txt = "Anda memiliki simulasi yang belum selesai: <b>" + done + " dari " + TOTAL + " soal</b> sudah dijawab.";
+          if (p.timed && p.endAt) {
+            var left = Math.round((p.endAt - Date.now()) / 1000);
+            txt += left > 0
+              ? " Sisa waktu sekitar <b>" + fmt(left) + "</b>."
+              : " Batas waktunya sudah lewat; melanjutkan akan langsung menampilkan hasil.";
+          }
+          $("progress-text").innerHTML = txt;
+          $("panel-progress").hidden = false;
+        } else {
+          $("panel-progress").hidden = true;
+        }
+        var r = loadResult();
+        if (r) {
+          var d = new Date(r.ts);
+          var tgl = d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) +
+            ", " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+          $("last-result-text").innerHTML =
+            "Nilai terakhir Anda: <b>" + r.score + " dari 100</b> (" + r.correct + " benar dari " + TOTAL +
+            " soal), diselesaikan pada " + esc(tgl) +
+            ". Tekan <b>Reset simulasi</b> untuk menghapus nilai tersimpan ini, atau langsung mulai lagi lewat tombol di bawah.";
+          $("panel-result").hidden = false;
+        } else {
+          $("panel-result").hidden = true;
+        }
+      }
+
+      function $(id) { return document.getElementById(id); }
+      function esc(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function byNum(n) {
+        for (var i = 0; i < QUESTIONS.length; i++) if (QUESTIONS[i].n === n) return QUESTIONS[i];
+        return null;
+      }
+
+      /* ---------- Navigasi ujian ---------- */
+      function buildNav() {
+        var html = "";
+        CATEGORIES.forEach(function (cat) {
+          html += '<p class="nav-cat">' + esc(cat.name) + "</p><div class=\"nav-grid\">";
+          for (var n = cat.from; n <= cat.to; n++) {
+            var q = byNum(n);
+            if (!q) {
+              html += '<button type="button" class="nav-cell" disabled title="Soal tidak tersedia">' + n + "</button>";
+            } else {
+              html += '<button type="button" class="nav-cell" data-n="' + n + '" aria-label="Ke soal ' + n + '">' + n + "</button>";
+            }
+          }
+          html += "</div>";
+        });
+        $("nav-groups").innerHTML = html;
+        var cells = $("nav-groups").querySelectorAll(".nav-cell[data-n]");
+        for (var i = 0; i < cells.length; i++) {
+          cells[i].addEventListener("click", function () {
+            goToNum(parseInt(this.getAttribute("data-n"), 10));
+          });
+        }
+      }
+      function refreshNav() {
+        var cells = $("nav-groups").querySelectorAll(".nav-cell[data-n]");
+        var cur = QUESTIONS[state.idx].n;
+        for (var i = 0; i < cells.length; i++) {
+          var n = parseInt(cells[i].getAttribute("data-n"), 10);
+          cells[i].classList.toggle("answered", !!state.answers[n]);
+          cells[i].classList.toggle("flagged", !!state.flagged[n]);
+          cells[i].classList.toggle("current", n === cur);
+        }
+      }
+
+      /* ---------- Tampil soal ---------- */
+      function renderQuestion() {
+        var q = QUESTIONS[state.idx];
+        $("info-num").textContent = q.n;
+        $("info-status").textContent = state.answers[q.n] ? "Jawaban tersimpan" : "Belum dijawab";
+        var isFlag = !!state.flagged[q.n];
+        $("flag-text").textContent = isFlag ? "Hapus tanda" : "Tandai soal";
+        $("flag-link").classList.toggle("on", isFlag);
+        $("q-text").textContent = q.q;
+        var picked = state.answers[q.n];
+        var html = "";
+        q.o.forEach(function (opt, i) {
+          var L = LETTERS[i];
+          html += '<label class="opt' + (picked === L ? " picked" : "") + '">' +
+            '<input type="radio" name="jawaban" value="' + L + '"' + (picked === L ? " checked" : "") + " />" +
+            '<span class="letter">' + L.toLowerCase() + '.</span><span>' + esc(opt) + "</span></label>";
+        });
+        $("options").innerHTML = html;
+        $("clear-link").hidden = !picked;
+        var radios = $("options").querySelectorAll('input[type="radio"]');
+        for (var i = 0; i < radios.length; i++) {
+          radios[i].addEventListener("change", function () {
+            state.answers[q.n] = this.value;
+            renderQuestion();
+            refreshNav();
+          });
+        }
+        $("btn-prev").disabled = state.idx === 0;
+        $("btn-next").disabled = state.idx === TOTAL - 1;
+        refreshNav();
+        saveProgress();
+        window.scrollTo(0, 0);
+      }
+      function goToNum(n) {
+        for (var i = 0; i < QUESTIONS.length; i++) {
+          if (QUESTIONS[i].n === n) { state.idx = i; renderQuestion(); return; }
+        }
+      }
+
+      /* ---------- Timer ---------- */
+      function fmt(sec) {
+        sec = Math.max(0, sec);
+        var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+        function p(x) { return (x < 10 ? "0" : "") + x; }
+        return h + ":" + p(m) + ":" + p(s);
+      }
+      function tick() {
+        var left = Math.round((state.endAt - Date.now()) / 1000);
+        $("timer-text").textContent = fmt(left);
+        $("timer-box").classList.toggle("low", left <= 300);
+        if (left <= 0) { finishExam(true); }
+      }
+      function startTimer(minutes) {
+        stopTimer();
+        if (!minutes) { state.timed = false; $("timer-row").hidden = true; return; }
+        state.timed = true;
+        $("timer-row").hidden = false;
+        $("timer-box").hidden = false;
+        $("btn-timer-toggle").textContent = "Sembunyikan";
+        state.endAt = Date.now() + minutes * 60 * 1000;
+        $("timer-text").textContent = fmt(minutes * 60);
+        state.timerId = setInterval(tick, 500);
+      }
+      function stopTimer() {
+        if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+      }
+
+      /* ---------- Alur ---------- */
+      function startExam() {
+        var sel = document.querySelector('input[name="durasi"]:checked');
+        var minutes = sel ? parseInt(sel.value, 10) : 90;
+        state.answers = {}; state.flagged = {}; state.idx = 0; state.filterWrong = false;
+        state.minutes = minutes; state.started = true;
+        $("screen-start").hidden = true;
+        $("screen-result").hidden = true;
+        $("screen-quiz").hidden = false;
+        buildNav();
+        renderQuestion();
+        startTimer(minutes);
+        saveProgress();
+      }
+      function resumeExam() {
+        var p = loadProgress();
+        if (!p) return;
+        state.answers = p.answers || {};
+        state.flagged = p.flagged || {};
+        state.idx = p.idx || 0;
+        state.minutes = p.minutes || 0;
+        state.timed = !!p.timed;
+        state.endAt = p.endAt || 0;
+        state.filterWrong = false;
+        state.started = true;
+        $("screen-start").hidden = true;
+        $("screen-result").hidden = true;
+        $("screen-quiz").hidden = false;
+        buildNav();
+        renderQuestion();
+        stopTimer();
+        if (!state.timed) {
+          $("timer-row").hidden = true;
+        } else if (state.endAt <= Date.now()) {
+          finishExam(true);
+          return;
+        } else {
+          $("timer-row").hidden = false;
+          $("timer-box").hidden = false;
+          $("btn-timer-toggle").textContent = "Sembunyikan";
+          $("timer-text").textContent = fmt(Math.round((state.endAt - Date.now()) / 1000));
+          state.timerId = setInterval(tick, 500);
+        }
+      }
+      function countAnswered() {
+        var c = 0;
+        for (var k in state.answers) if (state.answers[k]) c++;
+        return c;
+      }
+      function askFinish() {
+        var done = countAnswered(), left = TOTAL - done;
+        $("modal-summary").textContent = "Anda sudah menjawab " + done + " dari " + TOTAL + " soal.";
+        $("modal-warn").textContent = left > 0 ? "Masih ada " + left + " soal yang belum dijawab. Soal yang kosong dihitung salah." : "";
+        $("modal-back").hidden = false;
+      }
+      function finishExam(byTimeout) {
+        stopTimer();
+        var correct = 0;
+        QUESTIONS.forEach(function (q) { if (isCorrect(q)) correct++; });
+        state.started = false;
+        lsDel(LS_PROGRESS);
+        lsSet(LS_RESULT, {
+          correct: correct,
+          answered: countAnswered(),
+          score: Math.round(correct / TOTAL * 100),
+          ts: Date.now()
+        });
+        $("modal-back").hidden = true;
+        $("screen-quiz").hidden = true;
+        $("screen-start").hidden = true;
+        $("screen-result").hidden = false;
+        renderResults(!!byTimeout);
+        window.scrollTo(0, 0);
+      }
+
+      /* ---------- Hasil & review ---------- */
+      function isCorrect(q) { return state.answers[q.n] === q.k; }
+      function renderResults(byTimeout) {
+        var correct = 0;
+        QUESTIONS.forEach(function (q) { if (isCorrect(q)) correct++; });
+        var done = countAnswered();
+        $("timeout-note").hidden = !byTimeout;
+        $("score-num").textContent = correct;
+        $("score-sub").textContent = "Nilai: " + Math.round(correct / TOTAL * 100) + " dari 100";
+        $("result-stats").innerHTML =
+          '<div class="fact">Dijawab: <b>' + done + "</b></div>" +
+          '<div class="fact">Benar: <b>' + correct + "</b></div>" +
+          '<div class="fact">Salah: <b>' + (done - correct) + "</b></div>" +
+          '<div class="fact">Kosong: <b>' + (TOTAL - done) + "</b></div>";
+        $("btn-filter").setAttribute("aria-pressed", state.filterWrong ? "true" : "false");
+        $("btn-filter").textContent = state.filterWrong ? "Tampilkan semua soal" : "Tampilkan hanya yang salah";
+        var html = "";
+        QUESTIONS.forEach(function (q) {
+          var ok = isCorrect(q);
+          if (state.filterWrong && ok) return;
+          var user = state.answers[q.n];
+          html += '<article class="card review-item">';
+          html += '<div class="review-head"><span class="rn">Soal ' + q.n + '</span>' +
+            '<span class="badge ' + (ok ? "ok" : "bad") + '">' + (ok ? "✓ Benar" : (user ? "✗ Salah" : "✗ Tidak dijawab")) + "</span></div>";
+          html += '<p class="rq">' + esc(q.q) + "</p>";
+          q.o.forEach(function (opt, i) {
+            var L = LETTERS[i];
+            var cls = "", mark = "", tag = "";
+            if (L === q.k) { cls = "is-key"; mark = "✓"; tag = "Kunci jawaban"; }
+            if (user === L && L !== q.k) { cls = "is-user-wrong"; mark = "✗"; tag = "Jawaban Anda"; }
+            if (user === L && L === q.k) { tag = "Jawaban Anda · Kunci jawaban"; }
+            html += '<div class="ropt ' + cls + '"><span class="mark">' + mark + '</span><span><b>' + L + ".</b> " + esc(opt) + '</span>' + (tag ? '<span class="tag">' + tag + "</span>" : "") + "</div>";
+          });
+          var meta = "";
+          if (!user) meta += "<p>Jawaban Anda: <b>tidak dijawab</b>. Kunci jawaban: <b>" + q.k + "</b>.</p>";
+          if (q.g !== q.k) {
+            meta += "<p>Jawaban pada gambar asli: <b>" + q.g + "</b> — berbeda dengan kunci jawaban versi penelaah (<b>" + q.k + "</b>) yang dipakai untuk penilaian di sini.</p>";
+          }
+          if (q.r) meta += '<p class="reason"><b>Alasan:</b> ' + esc(q.r) + "</p>";
+          if (meta) html += '<div class="review-meta">' + meta + "</div>";
+          html += "</article>";
+        });
+        if (!html) html = '<div class="card empty-note">Semua jawaban benar. Kerja bagus!</div>';
+        $("review-list").innerHTML = html;
+      }
+
+      /* ---------- Peristiwa ---------- */
+      $("btn-start").addEventListener("click", startExam);
+      $("btn-prev").addEventListener("click", function () { if (state.idx > 0) { state.idx--; renderQuestion(); } });
+      $("btn-next").addEventListener("click", function () { if (state.idx < TOTAL - 1) { state.idx++; renderQuestion(); } });
+      $("clear-link").addEventListener("click", function (e) {
+        e.preventDefault();
+        var q = QUESTIONS[state.idx];
+        delete state.answers[q.n];
+        renderQuestion();
+      });
+      $("flag-link").addEventListener("click", function (e) {
+        e.preventDefault();
+        var q = QUESTIONS[state.idx];
+        if (state.flagged[q.n]) delete state.flagged[q.n]; else state.flagged[q.n] = true;
+        renderQuestion();
+      });
+      $("btn-timer-toggle").addEventListener("click", function () {
+        var box = $("timer-box");
+        box.hidden = !box.hidden;
+        this.textContent = box.hidden ? "Tampilkan" : "Sembunyikan";
+      });
+      $("finish-link").addEventListener("click", function (e) { e.preventDefault(); askFinish(); });
+      $("btn-modal-cancel").addEventListener("click", function () { $("modal-back").hidden = true; });
+      $("modal-back").addEventListener("click", function (e) { if (e.target === this) this.hidden = true; });
+      $("btn-modal-finish").addEventListener("click", function () { finishExam(false); });
+      $("btn-filter").addEventListener("click", function () {
+        state.filterWrong = !state.filterWrong;
+        renderResults($("timeout-note").hidden === false);
+      });
+      $("btn-retry").addEventListener("click", function () {
+        stopTimer();
+        $("screen-result").hidden = true;
+        $("screen-quiz").hidden = true;
+        $("screen-start").hidden = false;
+        refreshSavedPanels();
+        window.scrollTo(0, 0);
+      });
+      $("btn-resume").addEventListener("click", resumeExam);
+      $("btn-discard").addEventListener("click", function () {
+        lsDel(LS_PROGRESS);
+        refreshSavedPanels();
+      });
+      $("btn-reset").addEventListener("click", function () {
+        lsDel(LS_RESULT);
+        lsDel(LS_PROGRESS);
+        refreshSavedPanels();
+      });
+
+      refreshSavedPanels();
+    </script>
+  </body>
+</html>
